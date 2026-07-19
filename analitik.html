@@ -15,7 +15,8 @@
       <span class="p-2 bg-indigo-600 rounded-lg text-sm">GAS</span> CBT PREMIUM
     </div>
     <nav class="flex-1 p-4 space-y-2">
-      <a href="dashboard.html" class="flex items-center gap-3 px-4 py-3 hover:bg-indigo-800/50 rounded-xl text-indigo-200 hover:text-white transition-all"><span>📊</span> Dashboard</a>
+      <!-- PATCH: Mengubah target link dari dashboard.html ke index.html yang valid di repositori -->
+      <a href="index.html" class="flex items-center gap-3 px-4 py-3 hover:bg-indigo-800/50 rounded-xl text-indigo-200 hover:text-white transition-all"><span>📊</span> Dashboard</a>
       <a href="bank-soal.html" class="flex items-center gap-3 px-4 py-3 hover:bg-indigo-800/50 rounded-xl text-indigo-200 hover:text-white transition-all"><span>📚</span> Bank Soal</a>
       <a href="analitik.html" class="flex items-center gap-3 px-4 py-3 bg-indigo-800 rounded-xl text-white font-medium transition-all"><span>📈</span> Analitik Hasil</a>
     </nav>
@@ -59,8 +60,12 @@
       <!-- Chart Distribusi -->
       <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 lg:col-span-1">
         <h3 class="text-sm font-bold text-slate-800 mb-4 uppercase tracking-wider">Distribusi Skor</h3>
-        <div class="h-64 flex justify-center items-center"><canvas id="barChartAnalitik"></canvas></div>
+        <!-- PATCH: Memisahkan wrapper block canvas Chart.js agar terhindar dari parsing error -->
+        <div class="relative w-full h-64">
+          <canvas id="barChartAnalitik"></canvas>
+        </div>
       </div>
+      
       <!-- Tabel Hasil Siswa -->
       <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 lg:col-span-2 overflow-hidden">
         <h3 class="text-sm font-bold text-slate-800 mb-4 uppercase tracking-wider">Daftar Nilai Siswa</h3>
@@ -133,13 +138,17 @@
                 backgroundColor: ['#EF4444', '#10B981']
               }]
             },
-            options: { responsive: true, maintainAspectRatio: false }
+            options: { 
+              responsive: true, 
+              maintainAspectRatio: false 
+            }
           });
         } else {
           alert("Data nilai untuk ID Ujian tersebut kosong, bro!");
         }
       } catch (err) {
         console.error(err);
+        alert("Terjadi kesalahan teknis saat memproses analitik.");
       }
     }
   </script>
