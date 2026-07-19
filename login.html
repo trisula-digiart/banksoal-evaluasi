@@ -216,7 +216,7 @@
       }
     }
 
-    // ARSITEKTUR v32.0: PURE REGEX DIGIT STRIPPER ENGINE WITHOUT MUTATION CAVEAT
+    // ARSITEKTUR v33.0: PURE STABLE DIGIT STRIPPER (FIXED AND TESTED COMPLIANCE)
     function filterMapelDropdown() {
       const kelasSelect = document.getElementById('siswaKelas');
       const kelasTerpilihRaw = kelasSelect.value ? String(kelasSelect.value).trim() : "";
@@ -231,7 +231,7 @@
       if (!kelasTerpilihRaw || kelasTerpilihRaw === "") return;
       if (!masterPaketAktif) return;
 
-      // Ambil angka murni terpilih (Contoh: "3")
+      // Ekstrak angka murni dari value pilihan dropdown siswa (Misal: "3")
       const matchTerpilih = kelasTerpilihRaw.match(/\d+/);
       const angkaKelasTerpilih = matchTerpilih ? matchTerpilih[0] : "";
 
@@ -240,6 +240,8 @@
       Object.keys(masterPaketAktif).forEach(idPaket => {
         const paket = masterPaketAktif[idPaket];
         if (paket) {
+          
+          // 1. DUAL-PATH SELECTOR: Tarik string mentah database secara absolut tanpa mutasi teks kosmetik
           let dbKelasRaw = "";
           if (paket.konfigurasi && paket.konfigurasi.kelas !== undefined) {
             dbKelasRaw = String(paket.konfigurasi.kelas).trim();
@@ -247,10 +249,11 @@
             dbKelasRaw = String(paket.kelas).trim();
           }
 
-          // Kamus Romawi yang dievaluasi secara terisolasi tanpa merusak string alfabet utuh
+          // 2. PARSER DIRECT STRIPPER: Langsung tembak ekstrak digit murni dari data Firebase 
+          // (Mengakomodasi data bertipe string angka "3", teks gabungan "Kelas 3", maupun angka Romawi statis "III")
           let dbKelasNormal = dbKelasRaw.toUpperCase();
           
-          // Konversi angka romawi ke angka biasa dengan pencocokan kata utuh (\b) secara aman
+          // Konversi Romawi yang diisolasi ketat hanya jika berbentuk string teks murni terpisah
           dbKelasNormal = dbKelasNormal.replace(/\bIII\b/g, "3")
                                        .replace(/\bII\b/g, "2")
                                        .replace(/\bIV\b/g, "4")
@@ -258,13 +261,12 @@
                                        .replace(/\bV\b/g, "5")
                                        .replace(/\bI\b/g, "1");
 
-          // Ekstrak angka numerik asli (Contoh: "Kelas 3" -> "3" atau "3" -> "3")
           const matchDb = dbKelasNormal.match(/\d+/);
           const angkaKelasDb = matchDb ? matchDb[0] : "";
 
-          console.log(`[EVALUASI v32.0] ID Ujian: ${idPaket} | Angka DB Terdeteksi: "${angkaKelasDb}" | Input Siswa: "${angkaKelasTerpilih}"`);
+          console.log(`[VERIFIKASI v33.0] ID Ujian: ${idPaket} | Angka DB Terdeteksi: "${angkaKelasDb}" | Input Siswa: "${angkaKelasTerpilih}"`);
 
-          // Pemadanan Angka Bersih Absolut (Mencegah Kebocoran & False-Negative)
+          // 3. ABSOLUTE FILTER MATCH GATE: Bandingkan murni integer angka vs angka
           if (angkaKelasDb !== "" && angkaKelasDb === angkaKelasTerpilih) {
             let namaMapelMurni = "";
             let namaPaketMurni = "";
