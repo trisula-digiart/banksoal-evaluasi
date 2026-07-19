@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pengaturan Sistem | CBT-SAAS-GAS-GH</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-100 font-sans flex min-h-screen">
+
+  <main class="flex-1 p-8 max-w-2xl mx-auto">
+    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+      <h2 class="text-xl font-bold text-slate-800 mb-2">Pengaturan Profil Sekolah</h2>
+      <p class="text-xs text-slate-500 border-b pb-3 mb-6">Sesuaikan identitas sekolah untuk cetak kartu & rekap nilai.</p>
+      
+      <form id="settingsForm" class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">Nama Instansi / Sekolah</label>
+          <input type="text" id="nama_sekolah" required placeholder="SMA Negeri 1 Gas" class="w-full px-4 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">NPSN Sekolah</label>
+          <input type="text" id="npsn" required placeholder="102394xx" class="w-full px-4 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">Alamat Lengkap</label>
+          <textarea id="alamat" rows="3" required placeholder="Jl. Raya Coding No. 200" class="w-full px-4 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+        </div>
+        
+        <button type="submit" id="btnSaveSettings" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg text-sm shadow transition-colors">
+          Simpan Konfigurasi Sekolah
+        </button>
+      </form>
+    </div>
+  </main>
+
+  <script src="auth-service.js"></script>
+  <script>
+    AUTH_SERVICE.checkSession(['ADMIN']);
+
+    document.getElementById('settingsForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('btnSaveSettings');
+      btn.disabled = true;
+
+      const payload = {
+        action: "saveSettings",
+        payload: {
+          nama_sekolah: document.getElementById('nama_sekolah').value.trim(),
+          npsn: document.getElementById('npsn').value.trim(),
+          alamat: document.getElementById('alamat').value.trim()
+        }
+      };
+
+      const res = await fetch(AUTH_SERVICE.GAS_API_URL, {
+        method: "POST",
+        mode: "cors",
+        headers: { "Content-Type": "text/plain" },
+        body: JSON.stringify(payload)
+      });
+      const result = await res.json();
+      if(result.status === "SUCCESS") {
+        alert("Profil sekolah sukses disimpan ke Google Sheets!");
+        btn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
