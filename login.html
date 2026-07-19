@@ -45,10 +45,10 @@
   </div>
 
   <script>
-    // PENTING: Samakan URL ini dengan URL Web App GAS yang ada di index.html lu!
+    // URL Endpoint Web App GAS (Gunakan URL Deployment Aktif)
     const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxE_OIRpPdaAR91bwa3fT8myIKytHZF8P0_PH5ikF-9fqjAJqoi4NaLpKdHtn7o9V5zEA/exec';
 
-    // Helper fungsi enkripsi SHA-256 client-side agar aman di jaringan internet
+    // Helper Fungsi Enkripsi SHA-256 Client-Side
     async function sha256(message) {
       const msgBuffer = new TextEncoder().encode(message);
       const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
@@ -72,10 +72,9 @@
       alertEl.classList.add('hidden');
 
       try {
-        // Enkripsi password sebelum ditransfer via network request
         const passwordHash = await sha256(passEl.value);
 
-        // Bungkus payload POST sesuai requirement controller.gs
+        // Payload POST terstruktur sesuai kontrak router controller.gs
         const payload = {
           action: "login",
           payload: {
@@ -84,7 +83,7 @@
           }
         };
 
-        // Eksekusi request menggunakan metode POST via CORS-friendly text/plain
+        // Kirim via CORS-safe text/plain ke Google Apps Script
         const response = await fetch(GAS_WEB_APP_URL, {
           method: 'POST',
           mode: 'cors',
@@ -94,24 +93,23 @@
           body: JSON.stringify(payload)
         });
 
-        if (!response.ok) throw new Error("Terjadi kendala jaringan serverless.");
+        if (!response.ok) throw new Error("Gagal terhubung ke server backend!");
         
         const result = await response.json();
 
         if (result.status === "SUCCESS") {
-          // Simpan session data ke localStorage browser
+          // Rekam state otentikasi ke LocalStorage browser
           localStorage.setItem('cbt_session', JSON.stringify(result.data));
 
-          // Alihkan ke index.html (Dashboard Utama SPA kita) jika perannya terotorisasi
-          const role = result.data.role;
+          // Pengalihan berbasis Role Akses
+          const role = result.data.role.toUpperCase();
           if (role === 'ADMIN' || role === 'GURU' || role === 'OPERATOR') {
             window.location.href = 'index.html';
           } else {
             window.location.href = 'siswa-exam-list.html';
           }
         } else {
-          // Jika backend menolak otentikasi (User tidak ketemu / salah password)
-          throw new Error(result.error || "Gagal melakukan otentikasi.");
+          throw new Error(result.error || "Username atau password salah!");
         }
 
       } catch (error) {
