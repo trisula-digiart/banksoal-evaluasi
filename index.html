@@ -34,7 +34,7 @@
       </div>
     </div>
 
-    <!-- Navigasi Menu (Sesuai 10 Mockup Layar) -->
+    <!-- Navigasi Menu -->
     <nav class="flex-1 p-4 space-y-1 overflow-y-auto">
       <button onclick="switchView('dashboard')" id="nav-dashboard" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-xl transition-all text-indigo-600 bg-indigo-50/70">
         <span class="text-lg">📊</span> Dashboard
@@ -118,46 +118,46 @@
           </div>
         </div>
         
-        <!-- Summary Cards Grid -->
+        <!-- Summary Grid -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
             <div>
               <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Total Soal</p>
-              <h3 class="text-2xl font-black text-slate-800 mt-1" id="dashCardSoal">12.458</h3>
+              <h3 class="text-2xl font-black text-slate-800 mt-1" id="dashCardSoal">0</h3>
             </div>
             <span class="text-2xl p-3 bg-indigo-50 text-indigo-600 rounded-xl">📚</span>
           </div>
           <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
             <div>
               <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Mata Pelajaran</p>
-              <h3 class="text-2xl font-black text-slate-800 mt-1" id="dashCardMapel">24</h3>
+              <h3 class="text-2xl font-black text-slate-800 mt-1" id="dashCardMapel">0</h3>
             </div>
             <span class="text-2xl p-3 bg-emerald-50 text-emerald-600 rounded-xl">🧪</span>
           </div>
           <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
             <div>
               <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Paket Ujian</p>
-              <h3 class="text-2xl font-black text-slate-800 mt-1" id="dashCardPaket">156</h3>
+              <h3 class="text-2xl font-black text-slate-800 mt-1" id="dashCardPaket">0</h3>
             </div>
             <span class="text-2xl p-3 bg-amber-50 text-amber-600 rounded-xl">📅</span>
           </div>
           <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
             <div>
               <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Total Guru</p>
-              <h3 class="text-2xl font-black text-slate-800 mt-1" id="dashCardGuru">32</h3>
+              <h3 class="text-2xl font-black text-slate-800 mt-1" id="dashCardGuru">1</h3>
             </div>
             <span class="text-2xl p-3 bg-rose-50 text-rose-600 rounded-xl">👥</span>
           </div>
         </div>
 
-        <!-- Charts Workspace -->
+        <!-- Charts -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm lg:col-span-1">
             <h4 class="text-xs font-bold text-slate-700 uppercase mb-4 tracking-wider">Statistik Soal Per Mapel</h4>
             <div class="h-64 flex items-center justify-center"><canvas id="chartMapel"></canvas></div>
           </div>
           <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm lg:col-span-2">
-            <h4 class="text-xs font-bold text-slate-700 uppercase mb-4 tracking-wider">Grafik Pembuatan Soal (6 Bulan Terakhir)</h4>
+            <h4 class="text-xs font-bold text-slate-700 uppercase mb-4 tracking-wider">Grafik Pembuatan Soal</h4>
             <div class="h-64 flex items-center justify-center"><canvas id="chartHistory"></canvas></div>
           </div>
         </div>
@@ -172,13 +172,11 @@
           </div>
           <button onclick="switchView('tambahSoal')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-sm transition-colors">+ Tambah Soal Manual</button>
         </div>
-        <!-- Filter Bar -->
         <div class="bg-white p-4 rounded-xl border border-slate-200 flex flex-wrap gap-3 text-xs">
           <input type="text" placeholder="Cari soal..." class="px-3 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 w-64">
           <select class="px-3 py-2 border border-slate-200 rounded-lg outline-none"><option>Semua Mapel</option></select>
           <select class="px-3 py-2 border border-slate-200 rounded-lg outline-none"><option>Semua Kelas</option></select>
         </div>
-        <!-- Table Data -->
         <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
           <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse text-xs">
@@ -212,7 +210,6 @@
               <label class="block text-xs font-bold text-slate-600 uppercase mb-2">Konten Pertanyaan Ujian</label>
               <textarea id="formKontenSoal" rows="6" placeholder="Tulis soal ujian di sini, bro..." class="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
             </div>
-            <!-- Opsi Pilihan Jawaban -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Pilihan A</label>
@@ -232,7 +229,6 @@
               </div>
             </div>
           </div>
-          <!-- Atribut Kanan -->
           <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm h-fit space-y-4 text-xs">
             <div>
               <label class="block font-bold text-slate-600 mb-1">Kunci Jawaban</label>
@@ -267,23 +263,21 @@
       <section id="view-importExcel" class="hidden space-y-6">
         <div>
           <h2 class="text-xl font-bold text-slate-800">Bulk Import Engine</h2>
-          <p class="text-xs text-slate-400 mt-0.5">Unggah file template Excel (.xlsx) untuk injeksi soal massal instan bypass limitasi harian.</p>
+          <p class="text-xs text-slate-400 mt-0.5">Unggah file template Excel (.xlsx) untuk injeksi soal massal instan.</p>
         </div>
         <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
           <div class="border-2 border-dashed border-slate-200 rounded-xl p-8 text-center bg-slate-50/50 hover:bg-slate-50 transition-all cursor-pointer relative">
             <input type="file" id="excelFileInput" class="absolute inset-0 opacity-0 cursor-pointer" accept=".xlsx, .xls">
             <span class="text-3xl block mb-2">📁</span>
-            <p class="text-xs font-bold text-slate-700">Drag & Drop file Excel di sini or klik untuk browse</p>
-            <p class="text-[10px] text-slate-400 mt-1">Hanya mendukung format ekstensi berkas .xlsx / .xls</p>
+            <p class="text-xs font-bold text-slate-700">Drag & Drop file Excel di sini atau klik untuk browse</p>
           </div>
           <div class="flex justify-between items-center text-xs">
             <div id="importStatusText" class="text-slate-500 font-medium">Belum ada berkas terunggah.</div>
-            <button id="btnSyncExcel" disabled onclick="submitBulkData()" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl disabled:opacity-50 shadow-sm transition-all">Kirim Masuk ke Database</button>
+            <button id="btnSyncExcel" disabled onclick="submitBulkData()" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-sm transition-all">Kirim Masuk ke Database</button>
           </div>
         </div>
-        <!-- Table Preview Area -->
         <div id="excelPreviewCard" class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hidden">
-          <div class="p-4 bg-slate-50 font-bold text-xs text-slate-700 border-b border-slate-200">Pratinjau Data Struktur Validasi Excel</div>
+          <div class="p-4 bg-slate-50 font-bold text-xs text-slate-700 border-b border-slate-200">Pratinjau Data Validasi Excel</div>
           <div class="overflow-x-auto max-h-80"><table class="w-full text-left border-collapse text-[11px]"><thead class="bg-slate-100 text-slate-600 uppercase font-bold border-b border-slate-200"><tr><th class="p-3">#</th><th class="p-3">Mapel</th><th class="p-3">Kelas</th><th class="p-3">Pertanyaan</th><th class="p-3">Kunci</th></tr></thead><tbody id="excelPreviewBody" class="divide-y divide-slate-100"></tbody></table></div>
         </div>
       </section>
@@ -317,7 +311,7 @@
               </div>
               <div>
                 <label class="block font-bold text-slate-600 mb-1">Jumlah Soal Diambil</label>
-                <input type="number" id="pktJumlahSoal" value="40" class="w-full px-3 py-2 border border-slate-200 rounded-lg">
+                <input type="number" id="pktJumlahSoal" value="10" class="w-full px-3 py-2 border border-slate-200 rounded-lg">
               </div>
             </div>
           </div>
@@ -335,35 +329,39 @@
         </div>
       </section>
 
-      <!-- LAYER 6: SCREEN PREVIEW LIVE EXAM SISWA -->
+      <!-- LAYER 6: SCREEN PREVIEW LIVE EXAM SISWA (PATCHED DYNAMIC) -->
       <section id="view-previewUjian" class="hidden space-y-6 select-none">
-        <div class="bg-slate-900 text-white p-4 rounded-xl flex justify-between items-center">
+        <div class="bg-slate-900 text-white p-4 rounded-xl flex justify-between items-center shadow-sm">
           <div>
-            <h3 class="text-sm font-bold">Preview Layar Pengerjaan Live Siswa</h3>
-            <p class="text-[10px] text-slate-400">Simulasi responsivitas layout visual engine siswa saat ujian aktif.</p>
+            <h3 class="text-sm font-bold" id="pvPaketTitle">Preview Layar Pengerjaan Live Siswa</h3>
+            <p class="text-[10px] text-slate-400" id="pvPaketMeta">Pilih paket ujian aktif dari Firebase untuk disimulasikan.</p>
           </div>
-          <div class="px-3 py-1 bg-red-600 rounded-lg font-mono text-xs font-bold animate-pulse">⏱️ 01:29:45</div>
+          <div class="flex items-center gap-3">
+            <select id="pvPackageSelector" onchange="loadSelectedPreviewExam()" class="bg-slate-800 text-white text-xs px-3 py-1.5 rounded-lg border border-slate-700 outline-none focus:ring-1 focus:ring-indigo-500">
+              <option value="">-- Pilih Paket Aktif --</option>
+            </select>
+            <div class="px-3 py-1 bg-red-600 rounded-lg font-mono text-xs font-bold animate-pulse">⏱️ <span id="pvTimer">00:00:00</span></div>
+          </div>
         </div>
-        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <div id="pvExamContainer" class="grid grid-cols-1 lg:grid-cols-4 gap-6 hidden">
+          <!-- Kiri: Kotak Navigasi -->
           <div class="bg-white p-4 rounded-xl border border-slate-200 h-fit text-xs">
             <h4 class="font-bold text-slate-700 uppercase mb-3 text-[10px] tracking-wider">Navigasi Kotak Soal</h4>
-            <div class="grid grid-cols-5 gap-1.5">
-              <span class="p-2 bg-indigo-600 text-white font-bold text-center rounded-lg">1</span>
-              <span class="p-2 bg-emerald-500 text-white font-bold text-center rounded-lg">2</span>
-              <span class="p-2 bg-amber-500 text-white font-bold text-center rounded-lg">3</span>
-              <span class="p-2 bg-slate-100 text-slate-400 font-bold text-center rounded-lg">4</span>
-              <span class="p-2 bg-slate-100 text-slate-400 font-bold text-center rounded-lg">5</span>
+            <div class="grid grid-cols-5 gap-1.5" id="pvNavGrid">
+              <!-- Diisi dinamis via JS -->
             </div>
           </div>
+          <!-- Kanan: Konten Soal Aktif -->
           <div class="lg:col-span-3 bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
-            <div class="px-3 py-1 bg-slate-100 text-slate-700 font-bold text-[10px] rounded w-fit uppercase">Soal Nomor 1</div>
-            <p class="text-sm font-semibold text-slate-800">Perhatikan gambar berikut! Bagian yang ditunjuk oleh huruf X berfungsi untuk...</p>
-            <div class="space-y-2 text-xs">
-              <label class="flex items-center gap-3 p-3 border border-slate-200 rounded-xl hover:bg-slate-50 cursor-pointer"><input type="radio" name="pv" class="text-indigo-600"> <span>A. Tempat sintesis protein</span></label>
-              <label class="flex items-center gap-3 p-3 border border-indigo-500 bg-indigo-50/25 rounded-xl cursor-pointer"><input type="radio" name="pv" checked class="text-indigo-600"> <span>B. Mengatur kegiatan sel</span></label>
-              <label class="flex items-center gap-3 p-3 border border-slate-200 rounded-xl hover:bg-slate-50 cursor-pointer"><input type="radio" name="pv" class="text-indigo-600"> <span>C. Tempat respirasi sel</span></label>
+            <div class="px-3 py-1 bg-indigo-50 text-indigo-700 font-bold text-[10px] rounded w-fit uppercase" id="pvSoalNumberHeader">Soal Nomor -</div>
+            <p class="text-sm font-semibold text-slate-800" id="pvSoalText">Memuat pertanyaan...</p>
+            <div class="space-y-2 text-xs" id="pvOpsiContainer">
+              <!-- Diisi dinamis via JS -->
             </div>
           </div>
+        </div>
+        <div id="pvEmptyState" class="bg-white p-12 text-center rounded-xl border border-slate-200 text-slate-400 font-medium">
+          Silakan pilih paket aktif di atas untuk memuat pratinjau live exam, bro!
         </div>
       </section>
 
@@ -376,15 +374,15 @@
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm text-center">
             <h5 class="text-xs font-bold text-slate-400 uppercase">Rata-rata Kelas</h5>
-            <h3 class="text-3xl font-black text-indigo-600 mt-1">78.45</h3>
+            <h3 class="text-3xl font-black text-indigo-600 mt-1">0.00</h3>
           </div>
           <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm text-center">
             <h5 class="text-xs font-bold text-slate-400 uppercase">Nilai Tertinggi</h5>
-            <h3 class="text-3xl font-black text-emerald-600 mt-1">98</h3>
+            <h3 class="text-3xl font-black text-emerald-600 mt-1">0</h3>
           </div>
           <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm text-center">
             <h5 class="text-xs font-bold text-slate-400 uppercase">Jumlah Peserta</h5>
-            <h3 class="text-3xl font-black text-slate-800 mt-1">32</h3>
+            <h3 class="text-3xl font-black text-slate-800 mt-1">0</h3>
           </div>
         </div>
       </section>
@@ -399,7 +397,6 @@
           <button class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-sm">Upload Aset Ke Drive</button>
         </div>
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-4" id="mediaGalleryContainer">
-          <!-- Item Aset Media -->
           <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm space-y-2">
             <div class="w-full h-28 bg-slate-100 rounded-lg overflow-hidden flex items-center justify-center border border-slate-200/60">
               <span class="text-2xl">🖼️</span>
@@ -461,7 +458,7 @@
        ========================================== -->
   <script>
     // ==========================================
-    // 0. GERBANG KEAMANAN SESSION (MODULE 02)
+    // 0. GERBANG KEAMANAN SESSION
     // ==========================================
     const sessionRaw = localStorage.getItem('cbt_session');
     if (!sessionRaw) {
@@ -470,14 +467,12 @@
 
     const currentSession = JSON.parse(sessionRaw);
 
-    // Proteksi Otoritas Akses Dashboard Admin/Guru
     if (!['ADMIN', 'GURU', 'OPERATOR'].includes(currentSession.role)) {
       alert("Anda tidak memiliki hak akses ke panel ini!");
       localStorage.removeItem('cbt_session');
       window.location.href = 'login.html';
     }
 
-    // Mengisi widget profile di UI secara dinamis setelah DOM siap
     document.addEventListener("DOMContentLoaded", () => {
       const displayEl = document.getElementById('profileNameDisplay');
       const avatarEl = document.getElementById('userAvatar');
@@ -488,15 +483,14 @@
       }
     });
 
-    // Fungsi Keluar Aplikasi (Logout)
     function executeLogout() {
       localStorage.removeItem('cbt_session');
       window.location.href = 'login.html';
     }
 
-    // URL Endpoint API Apps Script Tunggal hasil deployment Anda
     const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxE_OIRpPdaAR91bwa3fT8myIKytHZF8P0_PH5ikF-9fqjAJqoi4NaLpKdHtn7o9V5zEA/exec';
-    
+    const FIREBASE_DB_URL = 'https://banksoalonline-default-rtdb.asia-southeast1.firebasedatabase.app/';
+
     document.getElementById('gasUrlBadge').innerText = GAS_WEB_APP_URL.substring(0, 30) + "...";
 
     // 1. ENGINE ROUTER LAYER (Dynamic SPA Switcher View)
@@ -522,6 +516,7 @@
       });
 
       if (targetViewId === 'bankSoal') fetchCloudBankSoal();
+      if (targetViewId === 'previewUjian') fetchActiveFirebasePackages();
     }
 
     // 2. FETCH DATA BANK SOAL DARI GOOGLE APPS SCRIPT
@@ -554,13 +549,9 @@
       }
     }
 
-    // ==========================================
-    // 2B. FIXED MODULE: EXAM PACKAGE CREATION SYNC ENGINE
-    // ==========================================
+    // 2B. EXAM PACKAGE CREATION SYNC ENGINE
     async function createExamPackage() {
       const btn = document.getElementById('btnSimpanPaket');
-      
-      // Ambil referensi elemen DOM masukan secara aman
       const pktNama = document.getElementById('pktNama');
       const pktMapel = document.getElementById('pktMapel');
       const pktKelas = document.getElementById('pktKelas');
@@ -570,17 +561,14 @@
       const pktAcakOpsi = document.getElementById('pktAcakOpsi');
       const pktTampilNilai = document.getElementById('pktTampilNilai');
 
-      // Validasi kelengkapan isian form sederhana
       if (!pktNama.value.trim() || !pktMapel.value.trim() || !pktKelas.value.trim()) {
         alert("Waduh! Nama Paket, Mapel, dan Kelas Target wajib diisi, bro!");
         return;
       }
 
-      // Kunci tombol agar anti-double trigger
       btn.disabled = true;
       btn.innerText = "Memproses Sinkronisasi Data...";
 
-      // Konstruksi waktu tiruan (mock data) 24 jam ke depan untuk mencegah fatal error datetime sheet
       const now = new Date();
       const tomorrow = new Date(now.getTime() + (24 * 60 * 60 * 1000));
       const mockWaktuMulai = now.toISOString().slice(0, 16);
@@ -615,9 +603,7 @@
 
         if (result.status === "SUCCESS") {
           alert("🎉 Mantap! " + (result.data.message || "Paket live berhasil disinkronkan ke Sheets & Firebase."));
-          // Refresh dashboard data secara otomatis setelah sukses
           switchView('dashboard');
-          // Reset form input
           pktNama.value = "";
           pktMapel.value = "";
           pktKelas.value = "";
@@ -631,6 +617,105 @@
         btn.disabled = false;
         btn.innerText = "Simpan & Rilis Paket Live";
       }
+    }
+
+    // ==========================================
+    // 2C. LIVE EXAM PREVIEW REAL-TIME CONTROLLER
+    // ==========================================
+    let activeExamData = null;
+    let currentActiveIndex = 1;
+
+    async function fetchActiveFirebasePackages() {
+      const selector = document.getElementById('pvPackageSelector');
+      selector.innerHTML = '<option value="">-- Mohon Tunggu... --</option>';
+      
+      try {
+        const res = await fetch(`${FIREBASE_DB_URL}active_packages.json`);
+        const data = await res.json();
+        
+        selector.innerHTML = '<option value="">-- Pilih Paket Aktif --</option>';
+        if (data) {
+          Object.keys(data).forEach(key => {
+            const config = data[key].konfigurasi;
+            selector.innerHTML += `<option value="${key}">${config.nama_paket || key} (${config.id_ujian || key})</option>`;
+          });
+        } else {
+          selector.innerHTML = '<option value="">-- Tidak Ada Paket Ujian Aktif di Firebase --</option>';
+        }
+      } catch(err) {
+        console.error(err);
+        selector.innerHTML = '<option value="">-- Gagal Memuat Paket Firebase --</option>';
+      }
+    }
+
+    async function loadSelectedPreviewExam() {
+      const packageId = document.getElementById('pvPackageSelector').value;
+      const container = document.getElementById('pvExamContainer');
+      const emptyState = document.getElementById('pvEmptyState');
+      
+      if (!packageId) {
+        container.classList.add('hidden');
+        emptyState.classList.remove('hidden');
+        return;
+      }
+      
+      try {
+        const res = await fetch(`${FIREBASE_DB_URL}active_packages/${packageId}.json`);
+        activeExamData = await res.json();
+        
+        if (activeExamData && activeExamData.list_soal) {
+          emptyState.classList.add('hidden');
+          container.classList.remove('hidden');
+          
+          // Render Metadata Header
+          document.getElementById('pvPaketTitle').innerText = activeExamData.konfigurasi.nama_paket;
+          document.getElementById('pvPaketMeta').innerText = `Durasi: ${activeExamData.konfigurasi.durasi} Menit | ID: ${activeExamData.konfigurasi.id_ujian}`;
+          document.getElementById('pvTimer').innerText = `${activeExamData.konfigurasi.durasi}:00`;
+          
+          // Render Kotak Navigasi Nomor
+          renderPreviewNavGrid();
+          // Render Soal Pertama bawaan
+          currentActiveIndex = 1;
+          renderActivePreviewSoal();
+        }
+      } catch(err) {
+        alert("Gagal membaca struktur paket live dari Firebase!");
+      }
+    }
+
+    function renderPreviewNavGrid() {
+      const grid = document.getElementById('pvNavGrid');
+      const totalSoal = Object.keys(activeExamData.list_soal).length;
+      
+      grid.innerHTML = "";
+      for (let i = 1; i <= totalSoal; i++) {
+        const isCurrent = i === currentActiveIndex;
+        grid.innerHTML += `
+          <button onclick="changeActivePreviewSoal(${i})" class="p-2.5 font-bold text-center rounded-lg transition-all ${isCurrent ? 'bg-indigo-600 text-white shadow-md' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}">
+            ${i}
+          </button>
+        `;
+      }
+    }
+
+    function changeActivePreviewSoal(index) {
+      currentActiveIndex = index;
+      renderPreviewNavGrid();
+      renderActivePreviewSoal();
+    }
+
+    function renderActivePreviewSoal() {
+      const soal = activeExamData.list_soal[currentActiveIndex];
+      document.getElementById('pvSoalNumberHeader').innerText = `Soal Nomor ${currentActiveIndex}`;
+      document.getElementById('pvSoalText').innerText = soal.soal || soal.konten_soal;
+      
+      const opsiContainer = document.getElementById('pvOpsiContainer');
+      opsiContainer.innerHTML = `
+        <label class="flex items-center gap-3 p-3 border border-slate-200 rounded-xl hover:bg-slate-50 cursor-pointer"><input type="radio" name="pvs" class="text-indigo-600"> <span>A. ${soal.a || soal.opsi_a}</span></label>
+        <label class="flex items-center gap-3 p-3 border border-slate-200 rounded-xl hover:bg-slate-50 cursor-pointer"><input type="radio" name="pvs" class="text-indigo-600"> <span>B. ${soal.b || soal.opsi_b}</span></label>
+        <label class="flex items-center gap-3 p-3 border border-slate-200 rounded-xl hover:bg-slate-50 cursor-pointer"><input type="radio" name="pvs" class="text-indigo-600"> <span>C. ${soal.c || soal.opsi_c}</span></label>
+        <label class="flex items-center gap-3 p-3 border border-slate-200 rounded-xl hover:bg-slate-50 cursor-pointer"><input type="radio" name="pvs" class="text-indigo-600"> <span>D. ${soal.d || soal.opsi_d}</span></label>
+      `;
     }
 
     // 3. ENGINE EXCEL BULK IMPORTER HANDLER (SheetJS Validation)
@@ -655,7 +740,6 @@
           document.getElementById('importStatusText').innerText = `${jsonData.length} baris data terdeteksi valid. Ready.`;
           document.getElementById('btnSyncExcel').removeAttribute('disabled');
           
-          // Render Preview Table
           document.getElementById('excelPreviewCard').classList.remove('hidden');
           const pBody = document.getElementById('excelPreviewBody');
           pBody.innerHTML = jsonData.slice(0, 5).map((row, i) => `
@@ -718,9 +802,8 @@
       }
     }
 
-    // 5. INITIALIZE MOCK CHARTS ON WORKSPACE LOAD (Dashboard Area)
+    // 5. INITIALIZE CHARTS
     window.onload = function() {
-      // Donut Chart Mapel
       new Chart(document.getElementById('chartMapel'), {
         type: 'doughnut',
         data: {
@@ -730,7 +813,6 @@
         options: { responsive: true, maintainAspectRatio: false }
       });
 
-      // Line Chart History
       new Chart(document.getElementById('chartHistory'), {
         type: 'line',
         data: {
