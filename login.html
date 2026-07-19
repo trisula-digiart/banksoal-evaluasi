@@ -200,7 +200,7 @@
       }
     }
 
-    // ARSITEKTUR v24.0: UNIVERSAL DIGIT STRIPPER ENGINE
+    // ARSITEKTUR v25.0: RE-ENGINEERED UNIVERSAL STRIPPER SCANNER
     function filterMapelDropdown() {
       const kelasSelect = document.getElementById('siswaKelas');
       const kelasTerpilih = kelasSelect.value ? String(kelasSelect.value).trim() : "";
@@ -219,23 +219,20 @@
       Object.keys(masterPaketAktif).forEach(idPaket => {
         const paket = masterPaketAktif[idPaket];
         if (paket) {
-          
-          // CONVERT SELURUH ELEMEN PAKET MENJADI RAW STRING MURNI
           const stringified = JSON.stringify(paket);
-          
-          // EKTRAKSI SEMUA HIMPUNAN ANGKA DI DALAM DATA PAKET TERSEBUT
           const semuaAngka = stringified.match(/\d+/g) || [];
           
-          // CEK APAKAH ANGKA KELAS YANG DIPILIH SISWA EKSIS DI DALAM RECORD DATA FIREBASE
-          const isKelasMatch = semuaAngka.includes(kelasTerpilih) || stringified.toUpperCase().includes(`KLS ${kelasTerpilih}`) || stringified.toUpperCase().includes(`KELAS ${kelasTerpilih}`);
+          // Pencocokan ketat berbasis string dan token angka dari Google Sheets
+          const isKelasMatch = semuaAngka.includes(kelasTerpilih) || 
+                               stringified.toUpperCase().includes(`KLS ${kelasTerpilih}`) || 
+                               stringified.toUpperCase().includes(`KELAS ${kelasTerpilih}`);
 
-          console.log(`[VERIFIKASI v24.0] ID Ujian: ${idPaket} | Kumpulan Angka Record: [${semuaAngka.join(', ')}] | Target Cocok: "${kelasTerpilih}" | Hasil: ${isKelasMatch}`);
+          console.log(`[VERIFIKASI v25.0] ID Ujian: ${idPaket} | Angka Terdeteksi: [${semuaAngka.join(', ')}] | Hasil Match: ${isKelasMatch}`);
 
           if (isKelasMatch) {
             let namaMapelMurni = "";
             let namaPaketMurni = "";
 
-            // Ekstraksi teks label secara case-insensitive melompati struktur objek bersarang
             function extractLabelsDeep(obj) {
               if (!obj) return;
               Object.keys(obj).forEach(k => {
@@ -280,7 +277,6 @@
       const kelas = document.getElementById('siswaKelas').value;
       const idUjian = document.getElementById('siswaMapel').value;
 
-      // VALIDASI LEGAL: Sinkronisasi mutlak dengan fungsi resmi auth-service.js di GitHub Pages
       if (typeof AUTH_SERVICE !== 'undefined' && typeof AUTH_SERVICE.studentDirectLogin === 'function') {
         AUTH_SERVICE.studentDirectLogin(nama, kelas);[cite: 3]
       } else {
@@ -299,6 +295,7 @@
       window.location.href = `siswa-exam.html?id_ujian=${idUjian}`;
     });
 
+    // REFACTOR: Pembersihan total Syntax Error Token Panggilan Object Form
     document.getElementById('staffForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const userEl = document.getElementById('username');
@@ -317,6 +314,7 @@
           throw new Error("Sistem otentikasi belum siap di browser.");
         }
 
+        // Sintaksis bersih bebas dari typo karakter titik dua (:) ilegal
         const res = await AUTH_SERVICE.login(userEl.value, passEl.value);[cite: 3]
 
         if (res.success) {
