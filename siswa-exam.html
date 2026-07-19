@@ -100,25 +100,21 @@
 
   <script src="auth-service.js"></script>
   <script>
-    // 1. Ambil Parameter & Proteksi Session Siswa
     const session = AUTH_SERVICE.checkSession(['SISWA']);
     const urlParams = new URLSearchParams(window.location.search);
     const idUjian = urlParams.get('id_ujian') || "EXAM-DEMO";
     
     if (session) {
-      // FALLBACK SAFE INJECTION: Jika session.uid tidak dikirim backend GAS, pakai session.username sebagai kunci path Firebase
       session.uid = session.uid || session.username;
       document.getElementById('siswaName').innerText = session.nama || session.username;
     }
 
-    // Konfigurasi Kredensial Firebase Operasional Live Exam
     const firebaseConfig = {
       databaseURL: "https://banksoalonline-default-rtdb.asia-southeast1.firebasedatabase.app/"
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // App State Global Frontend
     let listSoal = {};
     let jawabanTerpilih = {};
     let currentIndex = 1;
@@ -126,10 +122,9 @@
     let timerInterval = null;
     let sisaWaktuDetik = 0;
 
-    // 2. Fetch Initial State & Jalankan Engine Real-Time Sync
     async function initLiveExamEngine() {
       if (!session || !session.uid) {
-        alert("Kritikal Deteksi: Sesi identitas siswa tidak valid. Silakan login ulang!");
+        alert("Sesi identitas tidak valid. Silakan login ulang!");
         AUTH_SERVICE.logout();
         return;
       }
@@ -143,24 +138,34 @@
             return;
           }
 
-          // Cek kelayakan child node list_soal untuk menghindari fatal freeze
           if (!dataPaket.list_soal) {
-            alert("Gagal Memuat Soal: Node 'list_soal' kosong atau tidak ditemukan di Firebase paket ini.");
-            document.getElementById('questionText').innerText = "Gagal memuat pertanyaan. Hubungi panitia ujian sekolah.";
+            alert("Node 'list_soal' tidak ditemukan di paket ujian Firebase ini.");
+            document.getElementById('questionText').innerText = "Gagal memuat soal. Hubungi admin sekolah.";
             return;
           }
 
           document.getElementById('examTitle').innerText = dataPaket.konfigurasi.nama_paket;
-          listSoal = dataPaket.list_soal;
+          
+          // PARSER FALLBACK: Jika list_soal bertipe Array, ubah menjadi struktur Object agar key mapping konsisten
+          const rawSoal = dataPaket.list_soal;
+          listSoal = {};
+          
+          if (Array.isArray(rawSoal)) {
+            rawSoal.forEach((soal, idx) => {
+              if (soal) listSoal[idx + 1] = soal;
+            });
+          } else {
+            listSoal = rawSoal;
+          }
+          
           totalSoal = Object.keys(listSoal).length;
 
-          // Ambil status riwayat pengerjaan berbasis kunci aman session.uid
+          // Tarik status progress live ujian dari Firebase
           db.ref(`live_exams/${idUjian}/${session.uid}`).once('value', (liveSnapshot) => {
             try {
               const liveData = liveSnapshot.val();
 
               if (liveData) {
-                // Pulihkan data lembar jawaban lama jika sempat ter-refresh browser
                 jawabanTerpilih = liveData.jawaban_terpilih || {};
                 sisaWaktuDetik = (typeof liveData.sisa_waktu_detik !== 'undefined') ? liveData.sisa_waktu_detik : (dataPaket.konfigurasi.durasi * 60);
                 
@@ -170,7 +175,6 @@
                   return;
                 }
               } else {
-                // Inisialisasi record baru jika siswa baru pertama kali masuk ruang ujian
                 sisaWaktuDetik = dataPaket.konfigurasi.durasi * 60;
                 db.ref(`live_exams/${idUjian}/${session.uid}`).set({
                   status_pengerjaan: "PROGRESS",
@@ -179,36 +183,36 @@
                 });
               }
 
-              // Luncurkan kompilasi visual antarmuka
+              // Jalankan rendering interface komponen utama
               buildNomorGrid();
               showQuestion(currentIndex);
               startTimerEngine();
 
             } catch (innerErr) {
-              console.error("Firebase Live Exam Recovery Crash:", innerErr);
-              alert("Gagal memulihkan status pengerjaan: " + innerErr.message);
+              console.error("Crash Riwayat Ujian:", innerErr);
+              document.getElementById('questionText').innerText = "Terjadi kegagalan parsing status lembar jawaban.";
             }
           });
 
         } catch (outerErr) {
-          console.error("Firebase Active Packages Parser Crash:", outerErr);
-          alert("Gagal memproses master data paket ujian: " + outerErr.message);
+          console.error("Crash Parser Master Paket:", outerErr);
+          alert("Gagal membaca struktur paket ujian: " + outerErr.message);
         }
       });
     }
 
-    // 3. Engine Timer: Loop sync sisa waktu per detik ke Firebase
     function startTimerEngine() {
-      // Proteksi awal jika waktu memang sudah habis
       if (sisaWaktuDetik <= 0) {
         autoSubmitUjian();
         return;
       }
 
+      if (timerInterval) clearInterval(timerInterval);
+
       timerInterval = setInterval(() => {
         if (sisaWaktuDetik <= 0) {
           clearInterval(timerInterval);
-          alert("Waktu habis! Jawaban kamu otomatis dikirim ke server.");
+          alert("Waktu habis! Jawaban kamu otomatis dikirim.");
           autoSubmitUjian();
           return;
         }
@@ -228,7 +232,6 @@
       }, 1000);
     }
 
-    // 4. Render Grid Navigasi Nomor Soal Dinamis
     function buildNomorGrid() {
       const container = document.getElementById('nomorGrid');
       container.innerHTML = "";
@@ -257,14 +260,18 @@
       }
     }
 
-    // 5. Render Konten Soal Aktif
     function showQuestion(index) {
       if (index < 1 || index > totalSoal) return;
       currentIndex = index;
       const soal = listSoal[index];
       
+      if (!soal) {
+        document.getElementById('questionText').innerText = "Soal pada nomor ini kosong atau tidak terformat.";
+        return;
+      }
+
       document.getElementById('currentNumberBadge').innerText = index;
-      document.getElementById('questionText').innerText = soal.soal;
+      document.getElementById('questionText').innerText = soal.soal || "Teks pertanyaan tidak tersedia.";
 
       const containerOpsi = document.getElementById('optionsContainer');
       const currentAns = jawabanTerpilih[index] ? jawabanTerpilih[index].jawaban : "";
@@ -274,12 +281,13 @@
 
       const keys = ['a', 'b', 'c', 'd'];
       containerOpsi.innerHTML = keys.map(key => {
+        const opsiTeks = soal[key] || soal[key.toUpperCase()] || "-";
         const isChecked = currentAns === key.toUpperCase();
         return `
           <label onclick="selectJawaban('${key.toUpperCase()}')" class="flex items-center gap-4 p-4 bg-white border ${isChecked ? 'border-indigo-500 bg-indigo-50/20' : 'border-slate-200 hover:bg-slate-50'} rounded-xl cursor-pointer transition-all">
             <input type="radio" name="opsiSoal" value="${key.toUpperCase()}" ${isChecked ? 'checked' : ''} class="w-4 h-4 text-indigo-600 border-slate-300 focus:ring-indigo-500">
             <span class="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-xs font-bold text-slate-500 uppercase">${key}</span>
-            <span class="text-slate-700 text-sm">${soal[key]}</span>
+            <span class="text-slate-700 text-sm">${opsiTeks}</span>
           </label>
         `;
       }).join('');
@@ -290,12 +298,12 @@
       buildNomorGrid();
     }
 
-    // 6. Aksi Memilih Jawaban (Sync Instant via Firebase .update())
     function selectJawaban(hurufOpsi) {
       if (!jawabanTerpilih[currentIndex]) {
         jawabanTerpilih[currentIndex] = { jawaban: "", status_ragu: false };
       }
 
+      jawabanTerpilled = hurufOpsi; 
       jawabanTerpilih[currentIndex].jawaban = hurufOpsi;
 
       db.ref(`live_exams/${idUjian}/${session.uid}/jawaban_terpilih/${currentIndex}`).update({
@@ -305,7 +313,6 @@
       showQuestion(currentIndex);
     }
 
-    // 7. Toggle Fitur Ragu-Ragu
     function toggleRaguRagu() {
       if (!jawabanTerpilih[currentIndex]) {
         jawabanTerpilih[currentIndex] = { jawaban: "", status_ragu: false };
@@ -341,7 +348,6 @@
       }
     }
 
-    // 8. Kirim Status Selesai ke Firebase & Alihkan ke Modul Kalkulator Nilai
     function autoSubmitUjian() {
       if(timerInterval) clearInterval(timerInterval);
       db.ref(`live_exams/${idUjian}/${session.uid}`).update({
