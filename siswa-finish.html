@@ -54,8 +54,8 @@
       </div>
 
       <div class="pt-4 border-t border-slate-100">
-        <a href="siswa-exam-list.html" class="inline-block w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-xl transition-colors shadow-lg shadow-indigo-100">
-          Kembali ke Daftar Ujian
+        <a href="login.html" onclick="AUTH_SERVICE.clearSession()" class="inline-block w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-xl transition-colors shadow-lg shadow-indigo-100">
+          Selesai & Keluar Aplikasi
         </a>
       </div>
     </div>
@@ -70,7 +70,7 @@
     const idUjian = urlParams.get('id_ujian');
 
     if (!idUjian || !session) {
-      window.location.href = "siswa-exam-list.html";
+      window.location.href = "login.html"; // PATCH: Mencegah error loop 404 broken path
     }
 
     const firebaseConfig = {
@@ -91,7 +91,7 @@
 
         if (!dataPaket || !liveData) {
           alert("Data operasional ujian tidak valid!");
-          window.location.href = "siswa-exam-list.html";
+          window.location.href = "login.html"; // PATCH: Dialihkan bersih ke gerbang utama
           return;
         }
 
