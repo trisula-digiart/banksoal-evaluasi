@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login | CBT-SAAS-GAS-GH</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Import Firebase untuk mendeteksi paket aktif sebelum masuk -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 </head>
 <body class="bg-slate-50 flex items-center justify-center min-h-screen">
 
@@ -44,9 +48,15 @@
     </form>
   </div>
 
-  <!-- Import Modul Otorisasi Pusat -->
   <script src="auth-service.js"></script>
   <script>
+    // Inisialisasi Firebase Klien untuk membaca paket aktif saat login sukses
+    const firebaseConfig = {
+      databaseURL: "https://banksoalonline-default-rtdb.asia-southeast1.firebasedatabase.app/"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
     document.getElementById('loginForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       
@@ -61,20 +71,37 @@
       btnText.innerText = "Memproses...";
       alertEl.classList.add('hidden');
 
-      // Panggil gerbang keamanan AUTH_SERVICE terpusat
       const res = await AUTH_SERVICE.login(userEl.value, passEl.value);
 
       if (res.success) {
         const role = res.user.role.toUpperCase();
         
-        // Pembagian kamar halaman berdasarkan otorisasi peran pengguna
         if (role === 'ADMIN' || role === 'GURU' || role === 'OPERATOR') {
           window.location.href = 'index.html';
         } else if (role === 'SISWA') {
-          // PATCH: Mengarahkan siswa langsung menuju berkas ruang ujian yang valid
-          window.location.href = 'siswa-exam.html';
+          try {
+            // Ambil daftar paket aktif dari Firebase secara dinamis sebelum mengarahkan siswa
+            const snapshot = await db.ref('active_packages').once('value');
+            const packages = snapshot.val();
+
+            if (!packages || Object.keys(packages).length === 0) {
+              throw new Error("Login Berhasil, tetapi saat ini belum ada paket ujian yang diaktifkan oleh Admin sekolah.");
+            }
+
+            // Ambil ID paket pertama yang berstatus aktif di Firebase
+            const activeExamId = Object.keys(packages)[0];
+
+            // Alihkan siswa ke ruang ujian lengkap membawa ID Paket Ujian riil
+            window.location.href = `siswa-exam.html?id_ujian=${activeExamId}`;
+
+          } catch (firebaseErr) {
+            AUTH_SERVICE.clearSession();
+            alertText.innerText = firebaseErr.message;
+            alertEl.classList.remove('hidden');
+            btnEl.disabled = false;
+            btnText.innerText = "Masuk Aplikasi";
+          }
         } else {
-          // Penanganan jika ada role tidak dikenal masuk ke sistem
           AUTH_SERVICE.clearSession();
           alertText.innerText = "Hak akses peran (role) Anda tidak dikenali oleh sistem.";
           alertEl.classList.remove('hidden');
@@ -82,7 +109,6 @@
           btnText.innerText = "Masuk Aplikasi";
         }
       } else {
-        // Render galat jika kredensial salah atau koneksi gagal
         alertText.innerText = res.message;
         alertEl.classList.remove('hidden');
         btnEl.disabled = false;
