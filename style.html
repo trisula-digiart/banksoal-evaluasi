@@ -1,0 +1,36 @@
+<style>
+  /* Kustomisasi scrollbar untuk area preview tabel */
+  .table-responsive::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  .table-responsive::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+  }
+  .table-responsive::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+  }
+  .table-responsive::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+  }
+
+  /* Sticky header fixing untuk Bootstrap Table */
+  .table th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background-color: #212529 !important;
+    color: #fff !important;
+  }
+
+  /* Efek visual tambahan untuk mempermudah pemindaian data */
+  .table-hover tbody tr:hover {
+    background-color: rgba(0, 0, 0, 0.04) !important;
+  }
+  
+  .card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+</style>
