@@ -148,7 +148,8 @@
     }
 
     function filterMapelDropdown() {
-      const kelasTerpilih = document.getElementById('siswaKelas').value.trim();
+      const kelasSelect = document.getElementById('siswaKelas');
+      const kelasTerpilih = kelasSelect.value.trim();
       const mapelSelect = document.getElementById('siswaMapel');
       const btnSubmit = document.getElementById('btnSubmitSiswa');
 
@@ -163,11 +164,9 @@
       Object.keys(masterPaketAktif).forEach(idPaket => {
         const paket = masterPaketAktif[idPaket];
         if (paket && paket.konfigurasi) {
-          // Ambil data dari simpul alternatif mana pun yang terisi
           const rawKelas = paket.konfigurasi.kelas || paket.konfigurasi.kelas_target || "";
           const dbMapel = paket.konfigurasi.mapel || paket.konfigurasi.mata_pelajaran || "Ujian";
 
-          // ADVANCED SANITIZER: Ekstrak hanya karakter angka murni dari record data Firebase
           const cleanDbKelas = String(rawKelas).replace(/[^0-9]/g, "").trim();
           const cleanTargetKelas = String(kelasTerpilih).replace(/[^0-9]/g, "").trim();
 
@@ -183,7 +182,9 @@
         mapelSelect.disabled = false;
         btnSubmit.disabled = false;
       } else {
-        alert("Tidak ada paket ujian aktif untuk Kelas " + kelasTerpilih + " saat ini.");
+        // PATCH: Ambil teks label dari opsi terpilih agar pesan error 100% akurat sesuai UI
+        const teksOpsiTerpilih = kelasSelect.options[kelasSelect.selectedIndex].text;
+        alert("Tidak ada paket ujian aktif untuk " + teksOpsiTerpilih + " saat ini.");
       }
     }
 
