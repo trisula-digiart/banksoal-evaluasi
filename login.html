@@ -200,7 +200,7 @@
       }
     }
 
-    // ARSITEKTUR v18.0: DIRECT PATH EVALUATION (ANTI MISMATCH)
+    // ARSITEKTUR v19.0: CASE-INSENSITIVE DYNAMIC PROPERTY EXTRACTOR
     function filterMapelDropdown() {
       const kelasSelect = document.getElementById('siswaKelas');
       const kelasTerpilih = kelasSelect.value ? String(kelasSelect.value).trim() : "";
@@ -219,21 +219,48 @@
       Object.keys(masterPaketAktif).forEach(idPaket => {
         const paket = masterPaketAktif[idPaket];
         if (paket) {
-          // TEMBAK LANGSUNG VARIABEL UTAMA HASIL PARSING GOOGLE SHEETS
+          
           let kelasDariDb = "";
-          if (paket.kelas !== undefined && paket.kelas !== null) {
-            kelasDariDb = String(paket.kelas).trim();
-          } else if (paket.konfigurasi && paket.konfigurasi.kelas !== undefined && paket.konfigurasi.kelas !== null) {
-            kelasDariDb = String(paket.konfigurasi.kelas).trim();
+          
+          // LANGKAH PANDAI 1: SCAN SEMUA KUNCI PADA LEVEL ROOT OBJEK (CASE-INSENSITIVE)
+          Object.keys(paket).forEach(key => {
+            if (key.toLowerCase() === 'kelas') {
+              kelasDariDb = String(paket[key]).trim();
+            }
+          });
+
+          // LANGKAH PANDAI 2: JIKA TIDAK KETEMU, SCAN LEVEL SUB-KONFIGURASI PADA OBJEK
+          if (!kelasDariDb && paket.konfigurasi) {
+            Object.keys(paket.konfigurasi).forEach(key => {
+              if (key.toLowerCase() === 'kelas') {
+                kelasDariDb = String(paket.konfigurasi[key]).trim();
+              }
+            });
           }
 
-          console.log(`[VERIFIKASI v18.0] ID Ujian: ${idPaket} | Nilai Kelas di DB: "${kelasDariDb}" | Target Cocok Siswa: "${kelasTerpilih}"`);
+          // AMBIL HANYA KARAKTER ANGKA DARI VALUE DATABASE YANG DITEMUKAN
+          const dbMatch = kelasDariDb.match(/\d+/);
+          const angkaKelasDb = dbMatch ? dbMatch[0] : "";
 
-          // VALIDASI JUJUR: Bandingkan langsung nilai string (misal "3" dengan "3" atau "Kelas 3" mengandung "3")
-          if (kelasDariDb === kelasTerpilih || kelasDariDb.includes(kelasTerpilih)) {
-            // Mapping nama mapel dan nama paket dari root objek database
-            let namaMapelMurni = paket.mapel || (paket.konfigurasi ? (paket.konfigurasi.mapel || paket.konfigurasi.mata_pelajaran) : "");
-            let namaPaketMurni = paket.nama_paket || (paket.konfigurasi ? paket.konfigurasi.nama_paket : "");
+          console.log(`[VERIFIKASI v19.0] ID Ujian: ${idPaket} | Ditemukan di DB: "${kelasDariDb}" -> Angka Murni: "${angkaKelasDb}" | Target Cocok Siswa: "${kelasTerpilih}"`);
+
+          // VALIDASI JUJUR MUTLAK BERBASIS ANGKA
+          if (angkaKelasDb !== "" && angkaKelasDb === kelasTerpilih) {
+            
+            // Ekstrak nama mapel & paket dengan case-insensitive mapping
+            let namaMapelMurni = "";
+            let namaPaketMurni = "";
+
+            // Cari nama mapel dinamis
+            const targetObj = paket.konfigurasi || paket;
+            Object.keys(targetObj).forEach(k => {
+              const lowerKey = k.toLowerCase();
+              if (lowerKey === 'mapel' || lowerKey === 'mata_pelajaran') namaMapelMurni = targetObj[k];
+              if (lowerKey === 'nama_paket' || lowerKey === 'namapaket') namaPaketMurni = targetObj[k];
+            });
+
+            if (!namaMapelMurni) namaMapelMurni = paket.mapel || "";
+            if (!namaPaketMurni) namaPaketMurni = paket.nama_paket || "";
 
             const mapelLabel = namaMapelMurni ? String(namaMapelMurni).toUpperCase() : "MATA PELAJARAN";
             const paketLabel = namaPaketMurni ? ` - ${namaPaketMurni}` : "";
@@ -260,7 +287,7 @@
       const idUjian = document.getElementById('siswaMapel').value;
 
       if (typeof AUTH_SERVICE !== 'undefined') {
-        AUTH_SERVICE.studentDirectLogin(nama, kelas); // Mengamankan sesi lokal siswa[cite: 1]
+        AUTH_SERVICE.studentDirectLogin(nama, kelas);[cite: 1]
       }
       window.location.href = `siswa-exam.html?id_ujian=${idUjian}`;
     });
@@ -283,7 +310,7 @@
           throw new Error("Sistem otentikasi belum siap di browser.");
         }
 
-        const res = await AUTH_SERVICE.login(userEl.value, passEl.value); //[cite: 1]
+        const res = await AUTH_SERVICE.login(userEl.value, passEl.value);[cite: 1]
 
         if (res.success) {
           window.location.href = 'index.html';
