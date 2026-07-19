@@ -2,6 +2,7 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
+  <!-- Mengunci viewport perangkat mobile dari scaling bawaan browser secara mutlak -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
   <title>Login | TRISULA SMART EVALUATION</title>
   <script src="https://cdn.tailwindcss.com"></script>
@@ -11,6 +12,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
   
   <style>
+    /* Mengunci zoom via CSS dan memastikan text-size tetap stabil di mobile browser */
     html, body {
       width: 100%;
       height: 100%;
@@ -25,10 +27,12 @@
 </head>
 <body class="bg-white text-slate-800 font-sans antialiased flex flex-col min-h-screen select-none">
 
-  <!-- WORKSPACE UTAMA: FULLSCREEN LAYOUT (EDGE-TO-EDGE) -->
+  <!-- ==========================================
+       WORKSPACE UTAMA: FULLSCREEN LAYOUT (EDGE-TO-EDGE)
+       ========================================== -->
   <div class="flex-1 w-full grid grid-cols-1 lg:grid-cols-12 overflow-y-auto lg:overflow-hidden bg-white">
     
-    <!-- BANNER ILUSTRASI KIRI -->
+    <!-- BANNER ILUSTRASI KIRI (DESKTOP / ATAS MOBILE) -->
     <div class="col-span-1 lg:col-span-7 w-full h-[320px] sm:h-[400px] lg:h-full bg-[#e8f1ff] lg:bg-gradient-to-b lg:from-blue-500 lg:to-indigo-600 bg-contain bg-no-repeat bg-center relative shrink-0" 
          style="background-image: url('bg-login.jpg');">
       <div class="absolute inset-0 bg-slate-950/5 lg:hidden"></div>
@@ -43,6 +47,7 @@
           <p class="text-slate-500 text-xs md:text-sm mt-1">Silakan masuk untuk memulai ujian</p>
         </div>
 
+        <!-- Switch Mode Tab: Siswa vs Admin/Guru -->
         <div class="flex bg-slate-100 p-1 rounded-xl border border-slate-200/50 shadow-inner">
           <button type="button" onclick="switchTab('SISWA')" id="tabSiswa" class="flex-1 py-2 text-xs md:text-sm font-bold rounded-lg bg-white text-indigo-600 shadow-sm transition-all flex items-center justify-center gap-2">
             👤 Siswa
@@ -52,11 +57,12 @@
           </button>
         </div>
 
+        <!-- Alert Banner Notifikasi Error -->
         <div id="errorAlert" class="hidden p-3 text-xs text-red-700 bg-red-50 rounded-xl border border-red-100 break-all shadow-sm" role="alert">
           <span class="font-bold">Waduh!</span> <span id="errorText"></span>
         </div>
 
-        <!-- FORM SISWA -->
+        <!-- FORM 1: LOGIN SISWA -->
         <form id="studentForm" class="space-y-3.5" autocomplete="off">
           <div>
             <label class="block mb-1 text-[10px] md:text-xs font-bold text-slate-700 uppercase tracking-wider">Nama Siswa</label>
@@ -94,7 +100,7 @@
           </div>
         </form>
 
-        <!-- FORM STAFF / ADMIN -->
+        <!-- FORM 2: LOGIN STAFF / ADMIN -->
         <form id="staffForm" class="space-y-3.5 hidden" autocomplete="off">
           <div>
             <label class="block mb-1 text-[10px] md:text-xs font-bold text-slate-700 uppercase tracking-wider">Username</label>
@@ -116,6 +122,7 @@
           </div>
         </form>
 
+        <!-- Banner Panduan Khas Mockup -->
         <div class="p-3 bg-amber-50 rounded-xl border border-amber-100 flex items-start gap-2 text-[10px] md:text-xs text-amber-800/95 shadow-sm">
           <span class="text-xs mt-0.5">💡</span>
           <div>
@@ -129,28 +136,40 @@
 
   </div>
 
+  <!-- BOTTOM BAR: FULL WIDTH STICKY FOOTER -->
   <footer class="bg-indigo-950 text-slate-400 text-center py-3 px-4 text-[9px] md:text-xs border-t border-indigo-900 flex flex-col sm:flex-row justify-between items-center gap-2 shrink-0 z-10">
-    <div><span class="text-white font-bold">TRISULA SMART EVALUATION</span></div>
-    <div class="text-indigo-300">Aplikasi dibuat oleh <strong>Trisula Ai Framework by K2c Komputindo</strong></div>
-    <div class="flex items-center gap-3"><span>✔ Aman</span><span>🔒 Terpercaya</span></div>
+    <div class="flex items-center gap-1.5">
+      <span class="text-white font-bold">TRISULA SMART EVALUATION</span>
+    </div>
+    <div class="text-indigo-300">
+      Aplikasi dibuat oleh <strong>Trisula Ai Framework by K2c Komputindo</strong>
+    </div>
+    <div class="flex items-center gap-3">
+      <span>✔ Aman</span>
+      <span>🔒 Terpercaya</span>
+    </div>
   </footer>
 
   <script src="auth-service.js" defer></script>
   
   <script>
-    const firebaseConfig = { databaseURL: "https://banksoalonline-default-rtdb.asia-southeast1.firebasedatabase.app/" };
+    const firebaseConfig = {
+      databaseURL: "https://banksoalonline-default-rtdb.asia-southeast1.firebasedatabase.app/"
+    };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
     let masterPaketAktif = null;
     let currentMode = "SISWA";
 
+    // KUNCI PINCH-TO-ZOOM PADA HANDPHONE
     document.addEventListener('gesturestart', function (e) { e.preventDefault(); });
     document.addEventListener('touchmove', function (e) { if (e.scale && e.scale !== 1) { e.preventDefault(); } }, { passive: false });
 
     function switchTab(mode) {
       currentMode = mode;
-      document.getElementById('errorAlert').classList.add('hidden');
+      const alertEl = document.getElementById('errorAlert');
+      alertEl.classList.add('hidden');
       if (mode === 'SISWA') {
         document.getElementById('tabSiswa').className = "flex-1 py-2 text-xs md:text-sm font-bold rounded-lg bg-white text-indigo-600 shadow-sm flex items-center justify-center gap-2";
         document.getElementById('tabStaff').className = "flex-1 py-2 text-xs md:text-sm font-bold rounded-lg text-slate-500 hover:text-slate-800 flex items-center justify-center gap-2";
@@ -171,13 +190,17 @@
         const snapshot = await db.ref('active_packages').once('value');
         masterPaketAktif = snapshot.val() || {};
         console.log("=== FIREBASE DATA SYNCED ===", masterPaketAktif);
+        
         kelasSelect.options[0].text = "-- Pilih Kelas --";
         kelasSelect.value = "";
+        kelasSelect.selectedIndex = 0;
         kelasSelect.disabled = false;
-      } catch (err) { console.error(err); }
+      } catch (err) {
+        console.error("Firebase Fetch Error:", err);
+      }
     }
 
-    // ARSITEKTUR v17.0: ABSOLUTE SPECIFIC TARGET EXTRACTOR
+    // ARSITEKTUR v18.0: DIRECT PATH EVALUATION (ANTI MISMATCH)
     function filterMapelDropdown() {
       const kelasSelect = document.getElementById('siswaKelas');
       const kelasTerpilih = kelasSelect.value ? String(kelasSelect.value).trim() : "";
@@ -196,7 +219,7 @@
       Object.keys(masterPaketAktif).forEach(idPaket => {
         const paket = masterPaketAktif[idPaket];
         if (paket) {
-          // BACA SECARA AMAN DARI STRUKTUR UTAMA ATAU SUB-KONFIGURASI
+          // TEMBAK LANGSUNG VARIABEL UTAMA HASIL PARSING GOOGLE SHEETS
           let kelasDariDb = "";
           if (paket.kelas !== undefined && paket.kelas !== null) {
             kelasDariDb = String(paket.kelas).trim();
@@ -204,21 +227,19 @@
             kelasDariDb = String(paket.konfigurasi.kelas).trim();
           }
 
-          // AMBIL KARAKTER ANGKA SAJA DARI VALUE DATABASE
-          const matchDb = kelasDariDb.match(/\d+/);
-          const angkaKelasDb = matchDb ? matchDb[0] : "";
+          console.log(`[VERIFIKASI v18.0] ID Ujian: ${idPaket} | Nilai Kelas di DB: "${kelasDariDb}" | Target Cocok Siswa: "${kelasTerpilih}"`);
 
-          console.log(`[CHECKING ENGINE] ID: ${idPaket} | Angka DB: "${angkaKelasDb}" | Target Siswa: "${kelasTerpilih}"`);
+          // VALIDASI JUJUR: Bandingkan langsung nilai string (misal "3" dengan "3" atau "Kelas 3" mengandung "3")
+          if (kelasDariDb === kelasTerpilih || kelasDariDb.includes(kelasTerpilih)) {
+            // Mapping nama mapel dan nama paket dari root objek database
+            let namaMapelMurni = paket.mapel || (paket.konfigurasi ? (paket.konfigurasi.mapel || paket.konfigurasi.mata_pelajaran) : "");
+            let namaPaketMurni = paket.nama_paket || (paket.konfigurasi ? paket.konfigurasi.nama_paket : "");
 
-          // VALIDASI ABSOLUT: COCOKKAN HANYA BILA ANGKA DATABASE RELEVAN DENGAN INPUT SISWA
-          if (angkaKelasDb !== "" && angkaKelasDb === kelasTerpilih) {
-            let namaMapelMurni = paket.konfigurasi ? (paket.konfigurasi.mapel || paket.konfigurasi.mata_pelajaran) : paket.mapel;
-            let namaPaketMurni = paket.konfigurasi ? paket.konfigurasi.nama_paket : paket.nama_paket;
-
-            const mapelLabel = namaMapelMurni ? String(namaMapelMurni).toUpperCase() : "UJIAN AKTIF";
+            const mapelLabel = namaMapelMurni ? String(namaMapelMurni).toUpperCase() : "MATA PELAJARAN";
             const paketLabel = namaPaketMurni ? ` - ${namaPaketMurni}` : "";
+            const textOpsiTampilan = `${mapelLabel}${paketLabel}`;
 
-            mapelSelect.innerHTML += `<option value="${idPaket}">${mapelLabel}${paketLabel}</option>`;
+            mapelSelect.innerHTML += `<option value="${idPaket}">${textOpsiTampilan}</option>`;
             foundAny = true;
           }
         }
@@ -237,27 +258,46 @@
       const nama = document.getElementById('siswaNama').value.trim();
       const kelas = document.getElementById('siswaKelas').value;
       const idUjian = document.getElementById('siswaMapel').value;
-      if (typeof AUTH_SERVICE !== 'undefined') { AUTH_SERVICE.studentDirectLogin(nama, kelas); }
+
+      if (typeof AUTH_SERVICE !== 'undefined') {
+        AUTH_SERVICE.studentDirectLogin(nama, kelas); // Mengamankan sesi lokal siswa[cite: 1]
+      }
       window.location.href = `siswa-exam.html?id_ujian=${idUjian}`;
     });
 
     document.getElementById('staffForm').addEventListener('submit', async (e) => {
       e.preventDefault();
+      const userEl = document.getElementById('username');
+      const passEl = document.getElementById('password');
       const btnEl = document.getElementById('btnSubmitStaff');
       const btnText = document.getElementById('btnTextStaff');
-      btnEl.disabled = true; btnText.innerText = "Memproses...";
+      const alertEl = document.getElementById('errorAlert');
+      const alertText = document.getElementById('errorText');
+
+      btnEl.disabled = true;
+      btnText.innerText = "Memproses...";
+      alertEl.classList.add('hidden');
+
       try {
-        const res = await AUTH_SERVICE.login(document.getElementById('username').value, document.getElementById('password').value);
-        if (res.success) { window.location.href = 'index.html'; } 
-        else {
-          document.getElementById('errorText').innerText = res.message || "Gagal masuk.";
-          document.getElementById('errorAlert').classList.remove('hidden');
-          btnEl.disabled = false; btnText.innerText = "Masuk Aplikasi Dashboard";
+        if (typeof AUTH_SERVICE === 'undefined') {
+          throw new Error("Sistem otentikasi belum siap di browser.");
+        }
+
+        const res = await AUTH_SERVICE.login(userEl.value, passEl.value); //[cite: 1]
+
+        if (res.success) {
+          window.location.href = 'index.html';
+        } else {
+          alertText.innerText = res.message || "Gagal masuk.";
+          alertEl.classList.remove('hidden');
+          btnEl.disabled = false;
+          btnText.innerText = "Masuk Aplikasi Dashboard";
         }
       } catch (err) {
-        document.getElementById('errorText').innerText = err.message;
-        document.getElementById('errorAlert').classList.remove('hidden');
-        btnEl.disabled = false; btnText.innerText = "Masuk Aplikasi Dashboard";
+        alertText.innerText = err.message;
+        alertEl.classList.remove('hidden');
+        btnEl.disabled = false;
+        btnText.innerText = "Masuk Aplikasi Dashboard";
       }
     });
 
