@@ -137,7 +137,6 @@
         const snapshot = await db.ref('active_packages').once('value');
         masterPaketAktif = snapshot.val() || {};
         
-        // Stabilkan UI: Aktifkan dropdown setelah data sukses diunduh
         kelasSelect.options[0].text = "-- Pilih Kelas --";
         kelasSelect.disabled = false;
 
@@ -169,13 +168,26 @@
 
       Object.keys(masterPaketAktif).forEach(idPaket => {
         const paket = masterPaketAktif[idPaket];
-        if (paket && paket.konfigurasi) {
-          const rawKelas = paket.konfigurasi.kelas || paket.konfigurasi.kelas_target || "";
-          const dbMapel = paket.konfigurasi.mapel || paket.konfigurasi.mata_pelajaran || "Ujian";
+        if (paket) {
+          // ULTRA-DEFENSIVE IMPLEMENTATION: Baca struktur flat (langsung) maupun nested (konfigurasi)
+          let rawKelas = "";
+          let dbMapel = "Ujian";
+          let namaPaket = "Paket Ujian";
+
+          if (paket.konfigurasi) {
+            rawKelas = paket.konfigurasi.kelas || paket.konfigurasi.kelas_target || "";
+            dbMapel = paket.konfigurasi.mapel || paket.konfigurasi.mata_pelajaran || "Ujian";
+            namaPaket = paket.konfigurasi.nama_paket || "Paket Ujian";
+          } else {
+            rawKelas = paket.kelas || paket.kelas_target || "";
+            dbMapel = paket.mapel || paket.mata_pelajaran || "Ujian";
+            namaPaket = paket.nama_paket || "Paket Ujian";
+          }
+
           const cleanDbKelas = String(rawKelas).replace(/[^0-9]/g, "").trim();
 
           if (cleanDbKelas !== "" && cleanDbKelas === cleanTargetKelas) {
-            const nameDisplay = `${paket.konfigurasi.nama_paket} (${String(dbMapel).toUpperCase()})`;
+            const nameDisplay = `${namaPaket} (${String(dbMapel).toUpperCase()})`;
             mapelSelect.innerHTML += `<option value="${idPaket}">${nameDisplay}</option>`;
             foundAny = true;
           }
