@@ -9,7 +9,7 @@
 <body class="bg-slate-50 flex items-center justify-center min-h-screen">
 
   <div class="w-full max-w-md p-8 bg-white rounded-2xl shadow-xl border border-slate-100">
-    <!-- Header Logo / Judul -->
+    <!-- Header Logo -->
     <div class="text-center mb-8">
       <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-indigo-600 text-white text-2xl font-bold mb-3">
         CBT
@@ -19,7 +19,7 @@
     </div>
 
     <!-- Alert Error Banner -->
-    <div id="errorAlert" class="hidden mb-4 p-4 text-sm text-red-700 bg-red-50 rounded-lg border border-red-100" role="alert">
+    <div id="errorAlert" class="hidden mb-4 p-4 text-sm text-red-700 bg-red-50 rounded-lg border border-red-100 break-all" role="alert">
       <span class="font-medium">Waduh!</span> <span id="errorText"></span>
     </div>
 
@@ -47,7 +47,6 @@
   <script>
     const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxE_OIRpPdaAR91bwa3fT8myIKytHZF8P0_PH5ikF-9fqjAJqoi4NaLpKdHtn7o9V5zEA/exec';
 
-    // Helper Fungsi Enkripsi SHA-256 Client-Side
     async function sha256(message) {
       const msgBuffer = new TextEncoder().encode(message);
       const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
@@ -72,10 +71,11 @@
       try {
         const passwordHash = await sha256(passEl.value);
 
+        // Kirim string asli tanpa toLowerCase() untuk melihat kecocokan dengan data Sheets
         const payload = {
           action: "login",
           payload: {
-            username: userEl.value.trim().toLowerCase(), // Normalisasi ke huruf kecil
+            username: userEl.value.trim(),
             password_hash: passwordHash
           }
         };
@@ -99,7 +99,8 @@
             window.location.href = 'siswa-exam-list.html';
           }
         } else {
-          throw new Error(result.error || "Username atau password salah!");
+          // Tampilkan debug info apa hash yang dihasilkan oleh browser lu saat ini
+          throw new Error(`${result.error} (Hash Input: ${passwordHash})`);
         }
       } catch (error) {
         alertText.innerText = error.message;
