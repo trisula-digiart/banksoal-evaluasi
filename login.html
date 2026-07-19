@@ -39,43 +39,87 @@
 
       <button type="submit" id="btnSubmit"
         class="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-xl transition-colors flex items-center justify-center gap-2 shadow-lg shadow-indigo-100">
-        <span>Masuk Aplikasi</span>
+        <span id="btnText">Masuk Aplikasi</span>
       </button>
     </form>
   </div>
 
-  <!-- Integrasi Service Logic -->
-  <script src="auth-service.js"></script>
   <script>
+    // PENTING: Samakan URL ini dengan URL Web App GAS yang ada di index.html lu!
+    const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxE_OIRpPdaAR91bwa3fT8myIKytHZF8P0_PH5ikF-9fqjAJqoi4NaLpKdHtn7o9V5zEA/exec';
+
+    // Helper fungsi enkripsi SHA-256 client-side agar aman di jaringan internet
+    async function sha256(message) {
+      const msgBuffer = new TextEncoder().encode(message);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
     document.getElementById('loginForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       
       const userEl = document.getElementById('username');
       const passEl = document.getElementById('password');
       const btnEl = document.getElementById('btnSubmit');
+      const btnText = document.getElementById('btnText');
       const alertEl = document.getElementById('errorAlert');
       const alertText = document.getElementById('errorText');
 
       // Set Loading State
       btnEl.disabled = true;
-      btnEl.firstElementChild.innerText = "Memproses...";
+      btnText.innerText = "Memproses...";
       alertEl.classList.add('hidden');
 
-      const res = await AUTH_SERVICE.login(userEl.value, passEl.value);
+      try {
+        // Enkripsi password sebelum ditransfer via network request
+        const passwordHash = await sha256(passEl.value);
 
-      if (res.success) {
-        // Arahkan ke dashboard sesuai role masing-masing
-        if (res.user.role === 'ADMIN' || res.user.role === 'GURU' || res.user.role === 'OPERATOR') {
-          window.location.href = 'dashboard.html';
+        // Bungkus payload POST sesuai requirement controller.gs
+        const payload = {
+          action: "login",
+          payload: {
+            username: userEl.value.trim(),
+            password_hash: passwordHash
+          }
+        };
+
+        // Eksekusi request menggunakan metode POST via CORS-friendly text/plain
+        const response = await fetch(GAS_WEB_APP_URL, {
+          method: 'POST',
+          mode: 'cors',
+          headers: {
+            'Content-Type': 'text/plain;charset=utf-8'
+          },
+          body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) throw new Error("Terjadi kendala jaringan serverless.");
+        
+        const result = await response.json();
+
+        if (result.status === "SUCCESS") {
+          // Simpan session data ke localStorage browser
+          localStorage.setItem('cbt_session', JSON.stringify(result.data));
+
+          // Alihkan ke index.html (Dashboard Utama SPA kita) jika perannya terotorisasi
+          const role = result.data.role;
+          if (role === 'ADMIN' || role === 'GURU' || role === 'OPERATOR') {
+            window.location.href = 'index.html';
+          } else {
+            window.location.href = 'siswa-exam-list.html';
+          }
         } else {
-          window.location.href = 'siswa-exam-list.html';
+          // Jika backend menolak otentikasi (User tidak ketemu / salah password)
+          throw new Error(result.error || "Gagal melakukan otentikasi.");
         }
-      } else {
-        // Tampilkan error
-        alertText.innerText = res.message;
+
+      } catch (error) {
+        alertText.innerText = error.message;
         alertEl.classList.remove('hidden');
+      } finally {
         btnEl.disabled = false;
-        btnEl.firstElementChild.innerText = "Masuk Aplikasi";
+        btnText.innerText = "Masuk Aplikasi";
       }
     });
   </script>
