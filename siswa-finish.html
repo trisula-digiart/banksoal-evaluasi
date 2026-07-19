@@ -138,14 +138,14 @@
         // Hitung nilai akhir skala 0-100
         let nilaiAkhir = totalBobotMaksimal > 0 ? Math.round((totalBobotDapat / totalBobotMaksimal) * 100) : 0;
 
-        // 6. Kirim Payload Tunggal via GAS (Anti-Rate Limit Target)
-        const idRekap = "REKAP-" + AUTH_SERVICE.GAS_API_URL.substring(0, 4) + Math.random().toString(36).substring(2, 7).toUpperCase();
+        // 6. Kirim Payload Pasca Penyelarasan Pipa Data
+        const idRekap = "REKAP-" + Math.random().toString(36).substring(2, 7).toUpperCase();
         const payloadGAS = {
           action: "submitFinalScore",
           payload: {
             id_rekap: idRekap,
             id_ujian: idUjian,
-            id_siswa: session.uid,
+            id_siswa: session.nama || session.username, // PATCH: Kirim nama asli agar tabel analitik admin valid
             nilai_akhir: nilaiAkhir,
             total_benar: benar,
             total_salah: salah,
