@@ -10,97 +10,62 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 </head>
-<body class="bg-gradient-to-br from-blue-100 via-sky-50 to-indigo-100 min-h-screen flex flex-col font-sans antialiased">
+<body class="bg-slate-100 min-h-screen flex flex-col font-sans antialiased">
 
-  <!-- WRAPPER UTAMA: TAMPILAN PREMIUM SPLIT CONTAINER -->
-  <div class="flex-1 flex items-center justify-center p-4 md:p-8">
-    <div class="w-full max-w-6xl bg-white/95 backdrop-blur rounded-3xl shadow-2xl border border-white/40 overflow-hidden grid grid-cols-1 lg:grid-cols-12 min-h-[600px]">
+  <!-- WRAPPER UTAMA: TAMPILAN SPLIT SCREEN 100% MATCH MOCKUP -->
+  <div class="flex-1 flex items-center justify-center p-4 md:p-6 select-none">
+    <div class="w-full max-w-6xl bg-white rounded-3xl shadow-2xl border border-slate-200/60 overflow-hidden grid grid-cols-1 lg:grid-cols-12 min-h-[620px]">
       
       <!-- ==========================================
-           KIRI: BANNER ILUSTRASI & BRANDING (DESKTOP & TABLET ONLY)
+           KIRI: FULL IMAGE ILLUSTRATION CARD (DESKTOP & TABLET ONLY)
            ========================================== -->
-      <div class="hidden lg:flex lg:col-span-6 bg-gradient-to-b from-blue-500 to-indigo-600 p-10 flex-col justify-between text-white relative overflow-hidden">
-        <!-- Dekorasi Latar Belakang (Awan & Geometris) -->
-        <div class="absolute inset-0 bg-cover bg-center opacity-10" style="background-image: url('https://www.transparenttextures.com/patterns/clouds.png');"></div>
-        <div class="absolute -top-10 -left-10 w-40 h-40 bg-white/10 rounded-full blur-2xl"></div>
-        <div class="absolute -bottom-20 -right-20 w-60 h-60 bg-indigo-400/20 rounded-full blur-3xl"></div>
-
-        <!-- Header Brand Logo Vektor SVG -->
-        <div class="flex items-center gap-3 relative z-10">
-          <div class="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-indigo-600 shadow-md">
-            <!-- Ikon Trisula Vektor -->
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-7 h-7">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
-            </svg>
-          </div>
-          <div>
-            <h1 class="text-lg font-black tracking-wider leading-none">TRISULA</h1>
-            <p class="text-xs font-bold text-blue-100 uppercase tracking-widest mt-0.5">Smart Evaluation</p>
-          </div>
-        </div>
-
-        <!-- Konten Utama Slogan Mockup -->
-        <div class="my-auto space-y-5 relative z-10">
-          <span class="px-3 py-1 bg-white/20 backdrop-blur rounded-full text-xs font-bold tracking-wider uppercase">🚀 Bank Soal Untuk Anak SD</span>
-          <h2 class="text-4xl lg:text-5xl font-extrabold tracking-tight leading-tight">
-            Ujian Seru,<br><span class="text-yellow-300">Prestasi Hebat!</span>
-          </h2>
-          <p class="text-blue-100 text-sm max-w-md leading-relaxed">
-            Kerjakan ujian dengan jujur dan percaya diri. Raih hasil terbaikmu hari ini untuk masa depan yang gemilang!
-          </p>
-          
-          <!-- Ilustrasi Mini Fitur -->
-          <div class="pt-4 grid grid-cols-2 gap-4 text-xs font-semibold">
-            <div class="flex items-center gap-2 bg-white/10 p-2.5 rounded-xl"><span class="text-base">🛡️</span> Aman & Terpercaya</div>
-            <div class="flex items-center gap-2 bg-white/10 p-2.5 rounded-xl"><span class="text-base">⚡</span> Mudah Digunakan</div>
-          </div>
-        </div>
-
-        <!-- Footer Instansi Kiri -->
-        <div class="text-[11px] text-blue-200/80 font-medium relative z-10">
-          Aplikasi dibuat oleh <span class="text-white font-bold">Trisula Ai Framework by K2c Komputindo</span>
-        </div>
+      <div class="hidden lg:block lg:col-span-6 bg-cover bg-center relative min-h-[550px]" 
+           style="background-image: url('bg-login.jpg');">
+        <!-- Overlay perlindungan kontras pojok jika diperlukan -->
+        <div class="absolute inset-0 bg-gradient-to-t from-slate-950/10 via-transparent to-transparent"></div>
       </div>
 
       <!-- ==========================================
-           KANAN: CARD FORM LOGIN SISWA / ADMIN (RESPONSIVE)
+           KANAN: CARD FORM LOGIN UTAMA (SISWA & ADMIN)
            ========================================== -->
-      <div class="grid grid-cols-1 lg:col-span-6 p-6 md:p-12 items-center bg-slate-50/50">
+      <div class="grid grid-cols-1 lg:col-span-6 p-6 md:p-10 items-center bg-white">
         <div class="w-full max-w-md mx-auto space-y-6">
           
-          <!-- Header Teks Selamat Datang (Tanpa Logo CBT Sesuai Silang Merah) -->
-          <div class="text-center lg:text-left">
+          <!-- Header Teks Selamat Datang (Tanpa Logo Bundar Sesuai Silang Merah Anda) -->
+          <div class="text-center">
             <h2 class="text-2xl md:text-3xl font-black text-slate-800 tracking-tight">Selamat Datang!</h2>
-            <p class="text-slate-500 text-xs md:text-sm mt-1">Silakan masuk untuk memulai sesi ujian aktif kamu.</p>
+            <p class="text-slate-500 text-xs md:text-sm mt-1">Silakan masuk untuk memulai ujian</p>
           </div>
 
           <!-- Switch Mode Tab: Siswa vs Admin/Guru -->
-          <div class="flex bg-slate-200/70 p-1 rounded-2xl border border-slate-200/30 shadow-inner">
-            <button type="button" onclick="switchTab('SISWA')" id="tabSiswa" class="flex-1 py-2.5 text-xs md:text-sm font-bold rounded-xl bg-white text-indigo-600 shadow-sm transition-all flex items-center justify-center gap-2">
+          <div class="flex bg-slate-100 p-1 rounded-xl border border-slate-200/40 shadow-inner">
+            <button type="button" onclick="switchTab('SISWA')" id="tabSiswa" class="flex-1 py-2 text-xs md:text-sm font-bold rounded-lg bg-white text-indigo-600 shadow-sm transition-all flex items-center justify-center gap-2">
               👤 Siswa
             </button>
-            <button type="button" onclick="switchTab('STAFF')" id="tabStaff" class="flex-1 py-2.5 text-xs md:text-sm font-bold rounded-xl text-slate-500 hover:text-slate-800 transition-all flex items-center justify-center gap-2">
+            <button type="button" onclick="switchTab('STAFF')" id="tabStaff" class="flex-1 py-2 text-xs md:text-sm font-bold rounded-lg text-slate-500 hover:text-slate-800 transition-all flex items-center justify-center gap-2">
               🛡️ Admin / Guru
             </button>
           </div>
 
           <!-- Alert Banner Notifikasi Error -->
-          <div id="errorAlert" class="hidden p-4 text-xs md:text-sm text-red-700 bg-red-50 rounded-xl border border-red-100 break-all shadow-sm animate-shake" role="alert">
+          <div id="errorAlert" class="hidden p-4 text-xs text-red-700 bg-red-50 rounded-xl border border-red-100 break-all shadow-sm" role="alert">
             <span class="font-bold">Waduh!</span> <span id="errorText"></span>
           </div>
 
           <!-- FORM 1: LOGIN SISWA -->
           <form id="studentForm" class="space-y-4" autocomplete="off">
             <div>
-              <label class="block mb-1.5 text-xs font-bold text-slate-600 uppercase tracking-wider">Nama Lengkap Siswa</label>
-              <input type="text" id="siswaNama" required placeholder="Masukkan nama lengkap kamu" autocomplete="off"
-                class="w-full px-4 py-3 border border-slate-200 rounded-xl text-xs md:text-sm outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-slate-800 transition-all shadow-sm bg-white">
+              <label class="block mb-1 text-xs font-bold text-slate-700 uppercase tracking-wider">Nama Siswa</label>
+              <div class="relative">
+                <input type="text" id="siswaNama" required placeholder="Masukkan nama lengkap kamu" autocomplete="off"
+                  class="w-full pl-4 pr-4 py-3 border border-slate-200 rounded-xl text-xs md:text-sm outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800 transition-all shadow-sm bg-slate-50/50">
+              </div>
             </div>
 
             <div>
-              <label class="block mb-1.5 text-xs font-bold text-slate-600 uppercase tracking-wider">Pilih Kelas</label>
+              <label class="block mb-1 text-xs font-bold text-slate-700 uppercase tracking-wider">Kelas</label>
               <select id="siswaKelas" required onchange="filterMapelDropdown()" disabled
-                class="w-full px-4 py-3 border border-slate-200 rounded-xl text-xs md:text-sm outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-slate-800 transition-all bg-white shadow-sm disabled:opacity-60 disabled:bg-slate-100">
+                class="w-full px-4 py-3 border border-slate-200 rounded-xl text-xs md:text-sm outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800 transition-all bg-slate-50/50 shadow-sm disabled:opacity-60">
                 <option value="">Menghubungkan ke Firebase...</option>
                 <option value="1">Kelas 1</option>
                 <option value="2">Kelas 2</option>
@@ -112,16 +77,16 @@
             </div>
 
             <div>
-              <label class="block mb-1.5 text-xs font-bold text-slate-600 uppercase tracking-wider">Mata Pelajaran Ujian Aktif</label>
+              <label class="block mb-1 text-xs font-bold text-slate-700 uppercase tracking-wider">Mata Pelajaran Ujian Aktif</label>
               <select id="siswaMapel" required disabled
-                class="w-full px-4 py-3 border border-slate-200 rounded-xl text-xs md:text-sm outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-slate-800 transition-all bg-white shadow-sm disabled:opacity-60 disabled:bg-slate-100">
+                class="w-full px-4 py-3 border border-slate-200 rounded-xl text-xs md:text-sm outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800 transition-all bg-slate-50/50 shadow-sm disabled:opacity-60">
                 <option value="">-- Pilih Mapel Ujian --</option>
               </select>
             </div>
 
             <div class="pt-2">
               <button type="submit" id="btnSubmitSiswa" disabled
-                class="w-full py-3.5 px-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:from-slate-300 disabled:to-slate-400 text-white font-bold rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-indigo-200 text-xs md:text-sm uppercase tracking-wider">
+                class="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 text-white font-bold rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-indigo-100 text-xs md:text-sm uppercase tracking-wider">
                 <span>Mulai Ujian Sekarang 🚀</span>
               </button>
             </div>
@@ -130,31 +95,31 @@
           <!-- FORM 2: LOGIN STAFF / ADMIN -->
           <form id="staffForm" class="space-y-4 hidden" autocomplete="off">
             <div>
-              <label class="block mb-1.5 text-xs font-bold text-slate-600 uppercase tracking-wider">Username Admin</label>
-              <input type="text" id="username" autocomplete="off" required placeholder="Masukkan username"
-                class="w-full px-4 py-3 border border-slate-200 rounded-xl text-xs md:text-sm outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-slate-800 transition-all shadow-sm bg-white">
+              <label class="block mb-1 text-xs font-bold text-slate-700 uppercase tracking-wider">Username</label>
+              <input type="text" id="username" autocomplete="off" required placeholder="Masukkan username admin"
+                class="w-full px-4 py-3 border border-slate-200 rounded-xl text-xs md:text-sm outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800 transition-all shadow-sm bg-slate-50/50">
             </div>
 
             <div>
-              <label class="block mb-1.5 text-xs font-bold text-slate-600 uppercase tracking-wider">Password Kredensial</label>
+              <label class="block mb-1 text-xs font-bold text-slate-700 uppercase tracking-wider">Password</label>
               <input type="password" id="password" autocomplete="off" required placeholder="••••••••"
-                class="w-full px-4 py-3 border border-slate-200 rounded-xl text-xs md:text-sm outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-slate-800 transition-all shadow-sm bg-white">
+                class="w-full px-4 py-3 border border-slate-200 rounded-xl text-xs md:text-sm outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800 transition-all shadow-sm bg-slate-50/50">
             </div>
 
             <div class="pt-2">
               <button type="submit" id="btnSubmitStaff"
-                class="w-full py-3.5 px-4 bg-gradient-to-r from-slate-700 to-slate-800 hover:from-slate-800 hover:to-slate-900 text-white font-bold rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-slate-200 text-xs md:text-sm uppercase tracking-wider">
+                class="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-indigo-100 text-xs md:text-sm uppercase tracking-wider">
                 <span id="btnTextStaff">Masuk Aplikasi Dashboard</span>
               </button>
             </div>
           </form>
 
-          <!-- Banner Edukasi Motivasi Bawah -->
-          <div class="p-4 bg-amber-50 rounded-2xl border border-amber-100 flex items-start gap-3 text-[11px] md:text-xs text-amber-800/95 shadow-sm">
+          <!-- Banner Motivasi Bawah Khas Mockup Anda -->
+          <div class="p-4 bg-amber-50 rounded-2xl border border-amber-100 flex items-start gap-2.5 text-[11px] md:text-xs text-amber-800/95 shadow-sm">
             <span class="text-base mt-0.5">💡</span>
             <div>
-              <p class="font-bold">Informasi Pengerjaan:</p>
-              <p class="text-amber-700/90 mt-0.5">Pastikan kamu sudah siap sebelum memulai ujian. Kerjakan secara mandiri, jujur, dan penuh semangat! 😊</p>
+              <p class="font-bold text-amber-900">Pastikan kamu sudah siap sebelum memulai ujian.</p>
+              <p class="text-amber-700/95 mt-0.5">Kerjakan dengan jujur dan semangat! 😊</p>
             </div>
           </div>
 
@@ -164,18 +129,18 @@
     </div>
   </div>
 
-  <!-- BOTTOM UTAMA: GLOBAL STICKY BOTTOM BAR FOOTER -->
-  <footer class="bg-indigo-950 text-slate-400 text-center py-4 px-6 text-[10px] md:text-xs border-t border-indigo-900/60 font-medium flex flex-col md:flex-row justify-between items-center gap-2">
-    <div class="flex items-center gap-2">
+  <!-- STICKY BOTTOM BAR FOOTER UTAMA (SAMA PERSIS DENGAN BAGIAN BAWAH MOCKUP DESKTOP) -->
+  <footer class="bg-indigo-950 text-slate-400 text-center py-3 px-6 text-[10px] md:text-xs border-t border-indigo-900 flex flex-col md:flex-row justify-between items-center gap-2">
+    <div class="flex items-center gap-1.5">
       <span class="text-white font-bold">TRISULA SMART EVALUATION</span> | Bank Soal untuk Anak SD
     </div>
     <div class="text-indigo-300">
       Aplikasi dibuat oleh <strong>Trisula Ai Framework by K2c Komputindo</strong>
     </div>
-    <div class="flex items-center gap-4 text-[10px]">
-      <span>✔️ Aman</span>
-      <span>🔒 Terpercaya</span>
-      <span class="text-rose-400">❤️ Untuk Pendidikan Indonesia</span>
+    <div class="flex items-center gap-4">
+      <span class="flex items-center gap-1">✔ Aman</span>
+      <span class="flex items-center gap-1">🔒 Terpercaya</span>
+      <span class="text-rose-400">❤ Untuk Pendidikan Indonesia</span>
     </div>
   </footer>
 
@@ -202,13 +167,13 @@
       alertEl.classList.add('hidden');
 
       if (mode === 'SISWA') {
-        tabSiswa.className = "flex-1 py-2.5 text-xs md:text-sm font-bold rounded-xl bg-white text-indigo-600 shadow-sm transition-all flex items-center justify-center gap-2";
-        tabStaff.className = "flex-1 py-2.5 text-xs md:text-sm font-bold rounded-xl text-slate-500 hover:text-slate-800 transition-all flex items-center justify-center gap-2";
+        tabSiswa.className = "flex-1 py-2 text-xs md:text-sm font-bold rounded-lg bg-white text-indigo-600 shadow-sm transition-all flex items-center justify-center gap-2";
+        tabStaff.className = "flex-1 py-2 text-xs md:text-sm font-bold rounded-lg text-slate-500 hover:text-slate-800 transition-all flex items-center justify-center gap-2";
         studentForm.classList.remove('hidden');
         staffForm.classList.add('hidden');
       } else {
-        tabStaff.className = "flex-1 py-2.5 text-xs md:text-sm font-bold rounded-xl bg-white text-indigo-600 shadow-sm transition-all flex items-center justify-center gap-2";
-        tabSiswa.className = "flex-1 py-2.5 text-xs md:text-sm font-bold rounded-xl text-slate-500 hover:text-slate-800 transition-all flex items-center justify-center gap-2";
+        tabStaff.className = "flex-1 py-2 text-xs md:text-sm font-bold rounded-lg bg-white text-indigo-600 shadow-sm transition-all flex items-center justify-center gap-2";
+        tabSiswa.className = "flex-1 py-2 text-xs md:text-sm font-bold rounded-lg text-slate-500 hover:text-slate-800 transition-all flex items-center justify-center gap-2";
         staffForm.classList.remove('hidden');
         studentForm.classList.add('hidden');
       }
@@ -250,7 +215,6 @@
       Object.keys(masterPaketAktif).forEach(idPaket => {
         const paket = masterPaketAktif[idPaket];
         if (paket) {
-          // Normalisasi pencocokan string properti target kelas database
           let dbKelas = paket.kelas || (paket.konfigurasi ? paket.konfigurasi.kelas : "");
           dbKelas = String(dbKelas).replace(/[^0-9]/g, "").trim();
 
