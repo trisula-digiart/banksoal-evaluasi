@@ -200,7 +200,7 @@
       }
     }
 
-    // ARSITEKTUR v22.0: BRUTE-FORCE VALUE SCAN ENGINE (ANTI PROP-KEY MISMATCH)
+    // ARSITEKTUR v24.0: UNIVERSAL DIGIT STRIPPER ENGINE
     function filterMapelDropdown() {
       const kelasSelect = document.getElementById('siswaKelas');
       const kelasTerpilih = kelasSelect.value ? String(kelasSelect.value).trim() : "";
@@ -219,48 +219,39 @@
       Object.keys(masterPaketAktif).forEach(idPaket => {
         const paket = masterPaketAktif[idPaket];
         if (paket) {
-          let isMatch = false;
+          
+          // CONVERT SELURUH ELEMEN PAKET MENJADI RAW STRING MURNI
+          const stringified = JSON.stringify(paket);
+          
+          // EKTRAKSI SEMUA HIMPUNAN ANGKA DI DALAM DATA PAKET TERSEBUT
+          const semuaAngka = stringified.match(/\d+/g) || [];
+          
+          // CEK APAKAH ANGKA KELAS YANG DIPILIH SISWA EKSIS DI DALAM RECORD DATA FIREBASE
+          const isKelasMatch = semuaAngka.includes(kelasTerpilih) || stringified.toUpperCase().includes(`KLS ${kelasTerpilih}`) || stringified.toUpperCase().includes(`KELAS ${kelasTerpilih}`);
 
-          // ULAS SEMUA VALUE MURNI YANG ADA DI DALAM OBJEK SECARA REKURSIF
-          function scanValuesDeep(obj) {
-            if (!obj || isMatch) return;
-            
-            if (typeof obj !== 'object') {
-              const valStr = String(obj).trim().toUpperCase();
-              
-              // Cek jika value murni berupa angka kelas tunggal ("4" === "4")
-              // Atau mengandung teks penanda spesifik dari Google Sheets ("KLS 4", "KELAS 4")
-              if (valStr === kelasTerpilih || valStr === `KELAS ${kelasTerpilih}` || valStr === `KLS ${kelasTerpilih}`) {
-                isMatch = true;
-              }
-              return;
-            }
+          console.log(`[VERIFIKASI v24.0] ID Ujian: ${idPaket} | Kumpulan Angka Record: [${semuaAngka.join(', ')}] | Target Cocok: "${kelasTerpilih}" | Hasil: ${isKelasMatch}`);
 
-            Object.values(obj).forEach(val => {
-              scanValuesDeep(val);
-            });
-          }
-
-          // Jalankan mesin pemindai nilai kedalaman objek paket
-          scanValuesDeep(paket);
-
-          console.log(`[BRUTE SCAN v22.0] ID Ujian: ${idPaket} | Target Cocok Siswa: "${kelasTerpilih}" | Status Match: ${isMatch}`);
-
-          if (isMatch) {
-            // Ekstrak string nama mata pelajaran dan nama paket secara adaptif dari isi objek
+          if (isKelasMatch) {
             let namaMapelMurni = "";
             let namaPaketMurni = "";
 
-            function extractLabels(obj) {
+            // Ekstraksi teks label secara case-insensitive melompati struktur objek bersarang
+            function extractLabelsDeep(obj) {
               if (!obj) return;
               Object.keys(obj).forEach(k => {
                 const lowerK = k.toLowerCase();
-                if (lowerK === 'mapel' || lowerK === 'mata_pelajaran') namaMapelMurni = obj[k];
-                if (lowerK === 'nama_paket' || lowerK === 'namapaket') namaPaketMurni = obj[k];
-                if (typeof obj[k] === 'object') extractLabels(obj[k]);
+                if (lowerK === 'mapel' || lowerK === 'mata_pelajaran' || lowerK === 'matapelajaran') {
+                  namaMapelMurni = obj[k];
+                }
+                if (lowerK === 'nama_paket' || lowerK === 'namapaket' || lowerK === 'paket') {
+                  namaPaketMurni = obj[k];
+                }
+                if (typeof obj[k] === 'object') {
+                  extractLabelsDeep(obj[k]);
+                }
               });
             }
-            extractLabels(paket);
+            extractLabelsDeep(paket);
 
             if (!namaMapelMurni) namaMapelMurni = paket.mapel || "UJIAN AKTIF";
             if (!namaPaketMurni) namaPaketMurni = paket.nama_paket || "";
@@ -289,9 +280,22 @@
       const kelas = document.getElementById('siswaKelas').value;
       const idUjian = document.getElementById('siswaMapel').value;
 
-      if (typeof AUTH_SERVICE !== 'undefined') {
-        AUTH_SERVICE.studentDirectLogin(nama, kelas); // Simpan sesi[cite: 1]
+      // VALIDASI LEGAL: Sinkronisasi mutlak dengan fungsi resmi auth-service.js di GitHub Pages
+      if (typeof AUTH_SERVICE !== 'undefined' && typeof AUTH_SERVICE.studentDirectLogin === 'function') {
+        AUTH_SERVICE.studentDirectLogin(nama, kelas);[cite: 3]
+      } else {
+        const cleanUsername = nama.toLowerCase().replace(/[^a-z0-9]/g, "");
+        const uniqueUid = `siswa-${cleanUsername}-${Date.now().toString().slice(-5)}`;
+        const studentSession = {
+          uid: uniqueUid,
+          username: uniqueUid,
+          nama: nama,
+          kelas: kelas,
+          role: "SISWA"
+        };
+        localStorage.setItem("cbt_session", JSON.stringify(studentSession));
       }
+      
       window.location.href = `siswa-exam.html?id_ujian=${idUjian}`;
     });
 
@@ -313,7 +317,7 @@
           throw new Error("Sistem otentikasi belum siap di browser.");
         }
 
-        const res = await AUTH_SERVICE.login(userEl.value, passEl.value); // Login staff[cite: 1]
+        const res = await AUTH_SERVICE.login(userEl.value, passEl.value);[cite: 3]
 
         if (res.success) {
           window.location.href = 'index.html';
