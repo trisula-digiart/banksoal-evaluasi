@@ -149,15 +149,12 @@
           const rawSoal = dataPaket.list_soal;
           listSoal = {};
           
-          // REFACTOR PATCH: Deteksi pintar mapping array kosong/bergeser
           if (Array.isArray(rawSoal)) {
-            // Bersihkan elemen null di awal jika array ter-eksport dari baris kosong
             const cleanArray = rawSoal.filter(item => item !== null && item !== undefined);
             cleanArray.forEach((soal, idx) => {
               listSoal[idx + 1] = soal;
             });
           } else {
-            // Jika bertipe objek, bersihkan properti kosong jika ada
             let currentNum = 1;
             Object.keys(rawSoal).forEach(key => {
               if (rawSoal[key]) {
@@ -169,6 +166,7 @@
           
           totalSoal = Object.keys(listSoal).length;
 
+          // Ambil status progress live pengerjaan kuis
           db.ref(`live_exams/${idUjian}/${session.uid}`).once('value', (liveSnapshot) => {
             try {
               const liveData = liveSnapshot.val();
@@ -182,18 +180,29 @@
                   window.location.href = `siswa-finish.html?id_ujian=${idUjian}`;
                   return;
                 }
+
+                // PATCH: Pemuatan visual langsung dieksekusi jika folder record data sudah ada
+                buildNomorGrid();
+                showQuestion(currentIndex);
+                startTimerEngine();
               } else {
                 sisaWaktuDetik = dataPaket.konfigurasi.durasi * 60;
+                
+                // PATCH: Membungkus rendering visual ke dalam callback promise .then() milik .set() 
+                // untuk menjamin folder data siswa sukses dibuat terlebih dahulu di server Firebase
                 db.ref(`live_exams/${idUjian}/${session.uid}`).set({
                   status_pengerjaan: "PROGRESS",
                   sisa_waktu_detik: sisaWaktuDetik,
                   jawaban_terpilih: {}
+                }).then(() => {
+                  buildNomorGrid();
+                  showQuestion(currentIndex);
+                  startTimerEngine();
+                }).catch((setErr) => {
+                  console.error("Gagal inisialisasi folder siswa:", setErr);
+                  alert("Gagal mengamankan kursi ujian di database. Coba muat ulang halaman.");
                 });
               }
-
-              buildNomorGrid();
-              showQuestion(currentIndex);
-              startTimerEngine();
 
             } catch (innerErr) {
               console.error("Crash Riwayat Ujian:", innerErr);
@@ -308,7 +317,6 @@
       buildNomorGrid();
     }
 
-    // Koreksi typo variabel lokal agar sinkronisasi jawaban berjalan stabil
     function selectJawaban(hurufOpsi) {
       if (!jawabanTerpilih[currentIndex]) {
         jawabanTerpilih[currentIndex] = { jawaban: "", status_ragu: false };
