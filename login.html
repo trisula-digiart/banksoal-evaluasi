@@ -63,7 +63,7 @@
           <span class="font-bold">Waduh!</span> <span id="errorText"></span>
         </div>
 
-        <!-- FORM 1: LOGIN SISWA (Font Ukuran Kecil Pas & Proporsional di Layar HP) -->
+        <!-- FORM 1: LOGIN SISWA -->
         <form id="studentForm" class="space-y-3.5" autocomplete="off">
           <div>
             <label class="block mb-1 text-[10px] md:text-xs font-bold text-slate-700 uppercase tracking-wider">Nama Siswa</label>
@@ -165,36 +165,24 @@
     let masterPaketAktif = null;
     let currentMode = "SISWA";
 
-    // KUNCI PINCH-TO-ZOOM PADA HANDPHONE SECARA ABSOLUT VIA SCRIPT INTERCEPTOR
-    document.addEventListener('gesturestart', function (e) {
-      e.preventDefault();
-    });
-    document.addEventListener('touchmove', function (e) {
-      if (e.scale && e.scale !== 1) { 
-        e.preventDefault(); 
-      }
-    }, { passive: false });
+    // KUNCI PINCH-TO-ZOOM PADA HANDPHONE SECARA ABSOLUT
+    document.addEventListener('gesturestart', function (e) { e.preventDefault(); });
+    document.addEventListener('touchmove', function (e) { if (e.scale && e.scale !== 1) { e.preventDefault(); } }, { passive: false });
 
     function switchTab(mode) {
       currentMode = mode;
-      const tabSiswa = document.getElementById('tabSiswa');
-      const tabStaff = document.getElementById('tabStaff');
-      const studentForm = document.getElementById('studentForm');
-      const staffForm = document.getElementById('staffForm');
       const alertEl = document.getElementById('errorAlert');
-
       alertEl.classList.add('hidden');
-
       if (mode === 'SISWA') {
-        tabSiswa.className = "flex-1 py-2 text-xs md:text-sm font-bold rounded-lg bg-white text-indigo-600 shadow-sm transition-all flex items-center justify-center gap-2";
-        tabStaff.className = "flex-1 py-2 text-xs md:text-sm font-bold rounded-lg text-slate-500 hover:text-slate-800 transition-all flex items-center justify-center gap-2";
-        studentForm.classList.remove('hidden');
-        staffForm.classList.add('hidden');
+        document.getElementById('tabSiswa').className = "flex-1 py-2 text-xs md:text-sm font-bold rounded-lg bg-white text-indigo-600 shadow-sm flex items-center justify-center gap-2";
+        document.getElementById('tabStaff').className = "flex-1 py-2 text-xs md:text-sm font-bold rounded-lg text-slate-500 hover:text-slate-800 flex items-center justify-center gap-2";
+        document.getElementById('studentForm').classList.remove('hidden');
+        document.getElementById('staffForm').classList.add('hidden');
       } else {
-        tabStaff.className = "flex-1 py-2 text-xs md:text-sm font-bold rounded-lg bg-white text-indigo-600 shadow-sm transition-all flex items-center justify-center gap-2";
-        tabSiswa.className = "flex-1 py-2 text-xs md:text-sm font-bold rounded-lg text-slate-500 hover:text-slate-800 transition-all flex items-center justify-center gap-2";
-        staffForm.classList.remove('hidden');
-        studentForm.classList.add('hidden');
+        document.getElementById('tabStaff').className = "flex-1 py-2 text-xs md:text-sm font-bold rounded-lg bg-white text-indigo-600 shadow-sm flex items-center justify-center gap-2";
+        document.getElementById('tabSiswa').className = "flex-1 py-2 text-xs md:text-sm font-bold rounded-lg text-slate-500 hover:text-slate-800 flex items-center justify-center gap-2";
+        document.getElementById('staffForm').classList.remove('hidden');
+        document.getElementById('studentForm').classList.add('hidden');
       }
     }
 
@@ -216,7 +204,7 @@
       }
     }
 
-    // FIX MUTLAK v16.7: Fail-Safe Dynamic Global Scan Engine (Anti Mismatch Selamanya)
+    // FIX MUTLAK v16.8: Mengunci Properti Kelas Menggunakan Pembacaan Kolom Spesifik Berbasis Angka Murni
     function filterMapelDropdown() {
       const kelasSelect = document.getElementById('siswaKelas');
       const kelasTerpilih = kelasSelect.value ? String(kelasSelect.value).trim() : "";
@@ -235,25 +223,22 @@
       Object.keys(masterPaketAktif).forEach(idPaket => {
         const paket = masterPaketAktif[idPaket];
         if (paket) {
-          // UBAH OBJEK PAKET MENJADI STRING TEXT GLOBAL SECARA REAL-TIME
-          const rawObjectText = JSON.stringify(paket).toUpperCase();
-          
-          // Definisikan berbagai skenario pencarian teks kelas murni
-          const scanPattern1 = `KELAS ${kelasTerpilih}`;
-          const scanPattern2 = `KELAS:${kelasTerpilih}`;
-          const scanPattern3 = `"${kelasTerpilih}"`;
-          const scanPattern4 = `:${kelasTerpilih}`;
+          // 1. Ambil nilai mentah dari properti kelas database secara aman
+          let rawKelasDb = "";
+          if (paket.konfigurasi && paket.konfigurasi.kelas !== undefined) {
+            rawKelasDb = String(paket.konfigurasi.kelas).trim();
+          } else if (paket.kelas !== undefined) {
+            rawKelasDb = String(paket.kelas).trim();
+          }
 
-          console.log(`[SCANNING] Paket: ${idPaket} | Mencari Target Angka: "${kelasTerpilih}"`);
+          // 2. Ekstrak HANYA ANGKA DIGITAL dari kolom kelas database (Menghindari tabrakan teks ID atau Durasi)
+          const dbMatch = rawKelasDb.match(/\d+/);
+          const angkaKelasDb = dbMatch ? dbMatch[0] : "";
 
-          // JIKA STRING OBJEK MENGANDUNG TARGET ANGKA ATAU PATTERN DI ATAS, AKAN LANGSUNG LOLOS SINKRONISASI!
-          if (
-            rawObjectText.includes(scanPattern1) || 
-            rawObjectText.includes(scanPattern2) || 
-            rawObjectText.includes(scanPattern3) ||
-            rawObjectText.includes(scanPattern4) ||
-            rawObjectText.includes(`KELAS ${teksOpsiTerpilih.toUpperCase()}`)
-          ) {
+          console.log(`[DEBUG PERBANDINGAN] ID Paket: ${idPaket} | Angka di DB: "${angkaKelasDb}" | Pilihan Siswa: "${kelasTerpilih}"`);
+
+          // 3. Lakukan pencocokan angka kelas secara presisi absolut
+          if (angkaKelasDb !== "" && angkaKelasDb === kelasTerpilih) {
             let namaMapelMurni = "";
             let namaPaketMurni = "";
 
