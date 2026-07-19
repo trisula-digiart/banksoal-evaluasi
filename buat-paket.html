@@ -97,9 +97,10 @@
             <option value="DRAFT" class="text-slate-500">⚪ DRAFT (Simpan di Sheets Saja)</option>
           </select>
 
+          <!-- FIXED: Pembersihan total atribut inline onclick gaib -->
           <button type="submit" id="btnSimpanPaket"
             class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-xl transition-colors shadow-lg shadow-indigo-100 text-center block">
-            Simpan & Jalankan Ujian
+            Simpan & Rilis Paket Live
           </button>
         </div>
       </div>
@@ -148,12 +149,12 @@
         } else {
           alert("Gagal Sinkronisasi: " + result.error);
           btn.disabled = false;
-          btn.innerText = "Simpan & Jalankan Ujian";
+          btn.innerText = "Simpan & Rilis Paket Live";
         }
       } catch(err) {
         alert("Terjadi gangguan koneksi pada Dual-Write Engine!");
         btn.disabled = false;
-        btn.innerText = "Simpan & Jalankan Ujian";
+        btn.innerText = "Simpan & Rilis Paket Live";
       }
     });
   </script>
