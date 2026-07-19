@@ -200,7 +200,7 @@
       }
     }
 
-    // ARSITEKTUR v20.0: DYNAMIC INSENSITIVE MAPPING WITH FIXED SYNTAX
+    // ARSITEKTUR v21.0: PURE STRING VALUE SCANNER ENGINE
     function filterMapelDropdown() {
       const kelasSelect = document.getElementById('siswaKelas');
       const kelasTerpilih = kelasSelect.value ? String(kelasSelect.value).trim() : "";
@@ -219,33 +219,33 @@
       Object.keys(masterPaketAktif).forEach(idPaket => {
         const paket = masterPaketAktif[idPaket];
         if (paket) {
-          let kelasDariDb = "";
           
-          // Membaca kunci properti kelas secara case-insensitive pada root objek
-          Object.keys(paket).forEach(key => {
-            if (key.toLowerCase() === 'kelas') {
-              kelasDariDb = String(paket[key]).trim();
-            }
-          });
+          // UBAH VALUE OBJEK MENJADI TEKS UTUH KAPITAL SECARA TOTAL
+          const rawTextContent = JSON.stringify(paket).toUpperCase();
+          
+          // INDIKATOR 1: Scan Pola String Terikat Kolom Excel Berbasis Tanda Kutip
+          const patternKutip = `"${kelasTerpilih}"`;
+          
+          // INDIKATOR 2: Scan Pola Imbuhan Titik Dua Kolom JSON
+          const patternTitikDua = `:${kelasTerpilih}`;
+          
+          // INDIKATOR 3: Scan Teks Imbuhan Nama Paket Excel ("KLS 3" atau "KELAS 3")
+          const patternKls = `KLS ${kelasTerpilih}`;
+          const patternKelas = `KELAS ${kelasTerpilih}`;
 
-          // Membaca kunci properti kelas jika tersimpan di dalam folder konfigurasi
-          if (!kelasDariDb && paket.konfigurasi) {
-            Object.keys(paket.konfigurasi).forEach(key => {
-              if (key.toLowerCase() === 'kelas') {
-                kelasDariDb = String(paket.konfigurasi[key]).trim();
-              }
-            });
-          }
+          console.log(`[SCANNING LOGIC v21.0] ID: ${idPaket} | Target: "${kelasTerpilih}"`);
 
-          const dbMatch = kelasDariDb.match(/\d+/);
-          const angkaKelasDb = dbMatch ? dbMatch[0] : "";
-
-          console.log(`[VERIFIKASI] ID: ${idPaket} | Angka DB: "${angkaKelasDb}" | Target Siswa: "${kelasTerpilih}"`);
-
-          if (angkaKelasDb !== "" && angkaKelasDb === kelasTerpilih) {
+          // VALIDASI AKSES: Jika string text mengandung pola kolom kelas digital lu, langsung lolos!
+          if (
+            rawTextContent.includes(patternKutip) || 
+            rawTextContent.includes(patternTitikDua) || 
+            rawTextContent.includes(patternKls) || 
+            rawTextContent.includes(patternKelas)
+          ) {
             let namaMapelMurni = "";
             let namaPaketMurni = "";
 
+            // Ekstrak string mapel & paket secara dinamis melompati batasan nama properti
             const targetObj = paket.konfigurasi || paket;
             Object.keys(targetObj).forEach(k => {
               const lowerKey = k.toLowerCase();
@@ -253,10 +253,10 @@
               if (lowerKey === 'nama_paket' || lowerKey === 'namapaket') namaPaketMurni = targetObj[k];
             });
 
-            if (!namaMapelMurni) namaMapelMurni = paket.mapel || "";
+            if (!namaMapelMurni) namaMapelMurni = paket.mapel || "UJIAN AKTIF";
             if (!namaPaketMurni) namaPaketMurni = paket.nama_paket || "";
 
-            const mapelLabel = namaMapelMurni ? String(namaMapelMurni).toUpperCase() : "MATA PELAJARAN";
+            const mapelLabel = String(namaMapelMurni).toUpperCase();
             const paketLabel = namaPaketMurni ? ` - ${namaPaketMurni}` : "";
             const textOpsiTampilan = `${mapelLabel}${paketLabel}`;
 
@@ -281,12 +281,11 @@
       const idUjian = document.getElementById('siswaMapel').value;
 
       if (typeof AUTH_SERVICE !== 'undefined') {
-        AUTH_SERVICE.studentDirectLogin(nama, kelas); //[cite: 1]
+        AUTH_SERVICE.studentDirectLogin(nama, kelas);[cite: 1]
       }
       window.location.href = `siswa-exam.html?id_ujian=${idUjian}`;
     });
 
-    // FIX TOKENS: Membaca properti AUTH_SERVICE secara valid tanpa syntax error
     document.getElementById('staffForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const userEl = document.getElementById('username');
@@ -305,8 +304,7 @@
           throw new Error("Sistem otentikasi belum siap di browser.");
         }
 
-        // PERBAIKAN SINTAKSIS UTAMA: Menghapus token ':' ilegal pengganti tanda titik
-        const res = await AUTH_SERVICE.login(userEl.value, passEl.value); //[cite: 1]
+        const res = await AUTH_SERVICE.login(userEl.value, passEl.value);[cite: 1]
 
         if (res.success) {
           window.location.href = 'index.html';
