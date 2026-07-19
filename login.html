@@ -218,77 +218,73 @@
 
     // ARSITEKTUR v33.0: PURE STABLE DIGIT STRIPPER (FIXED AND TESTED COMPLIANCE)
     function filterMapelDropdown() {
-      const kelasSelect = document.getElementById('siswaKelas');
-      const kelasTerpilihRaw = kelasSelect.value ? String(kelasSelect.value).trim() : "";
-      const mapelSelect = document.getElementById('siswaMapel');
-      const btnSubmit = document.getElementById('btnSubmitSiswa');
-      const teksOpsiTerpilih = kelasSelect.options[kelasSelect.selectedIndex].text;
+  const kelasSelect = document.getElementById('siswaKelas');
+  const kelasTerpilihRaw = kelasSelect.value ? String(kelasSelect.value).trim() : "";
+  const mapelSelect = document.getElementById('siswaMapel');
+  const btnSubmit = document.getElementById('btnSubmitSiswa');
+  const teksOpsiTerpilih = kelasSelect.options[kelasSelect.selectedIndex].text;
 
-      mapelSelect.innerHTML = '<option value="">-- Pilih Mapel Ujian --</option>';
-      mapelSelect.disabled = true;
-      btnSubmit.disabled = true;
+  mapelSelect.innerHTML = '<option value="">-- Pilih Mapel Ujian --</option>';
+  mapelSelect.disabled = true;
+  btnSubmit.disabled = true;
 
-      if (!kelasTerpilihRaw || kelasTerpilihRaw === "") return;
-      if (!masterPaketAktif) return;
+  if (!kelasTerpilihRaw || kelasTerpilihRaw === "") return;
+  if (!masterPaketAktif) return;
 
-      // Ekstrak angka murni dari value pilihan dropdown siswa (Misal: "3")
-      const matchTerpilih = kelasTerpilihRaw.match(/\d+/);
-      const angkaKelasTerpilih = matchTerpilih ? matchTerpilih[0] : "";
+  // Ekstrak angka murni dari value pilihan dropdown siswa
+  const matchTerpilih = kelasTerpilihRaw.match(/\d+/);
+  const angkaKelasTerpilih = matchTerpilih ? matchTerpilih[0] : "";
 
-      let foundAny = false;
+  let foundAny = false;
 
-      Object.keys(masterPaketAktif).forEach(idPaket => {
-        const paket = masterPaketAktif[idPaket];
-        if (paket) {
-          
-          // 1. DUAL-PATH SELECTOR: Tarik string mentah database secara absolut tanpa mutasi teks kosmetik
-          let dbKelasRaw = "";
-          if (paket.konfigurasi && paket.konfigurasi.kelas !== undefined) {
-            dbKelasRaw = String(paket.konfigurasi.kelas).trim();
-          } else if (paket.kelas !== undefined) {
-            dbKelasRaw = String(paket.kelas).trim();
-          }
+  Object.keys(masterPaketAktif).forEach(idPaket => {
+    const paket = masterPaketAktif[idPaket];
+    if (paket) {
+      
+      // 1. DUAL-PATH SELECTOR: Ambil raw data dari node database Firebase
+      let dbKelasRaw = "";
+      if (paket.konfigurasi && paket.konfigurasi.kelas !== undefined) {
+        dbKelasRaw = paket.konfigurasi.kelas;
+      } else if (paket.kelas !== undefined) {
+        dbKelasRaw = paket.kelas;
+      }
 
-          // 2. PARSER DIRECT STRIPPER: Langsung tembak ekstrak digit murni dari data Firebase 
-          // (Mengakomodasi data bertipe string angka "3", teks gabungan "Kelas 3", maupun angka Romawi statis "III")
-          let dbKelasNormal = dbKelasRaw.toUpperCase();
-          
-          // Konversi Romawi yang diisolasi ketat hanya jika berbentuk string teks murni terpisah
-          dbKelasNormal = dbKelasNormal.replace(/\bIII\b/g, "3")
-                                       .replace(/\bII\b/g, "2")
-                                       .replace(/\bIV\b/g, "4")
-                                       .replace(/\bVI\b/g, "6")
-                                       .replace(/\bV\b/g, "5")
-                                       .replace(/\bI\b/g, "1");
+      // 2. PATCH RECOVERY v34.0: STABLE DIRECT STRIPPER ENGINE
+      // Mengubah integer murni maupun string campuran langsung menjadi string angka bersih
+      const angkaKelasDb = String(dbKelasRaw).replace(/[^0-9]/g, "").trim();
 
-          const matchDb = dbKelasNormal.match(/\d+/);
-          const angkaKelasDb = matchDb ? matchDb[0] : "";
+      console.log(`[VERIFIKASI v34.0] ID Ujian: ${idPaket} | Angka DB Terdeteksi: "${angkaKelasDb}" | Input Siswa: "${angkaKelasTerpilih}"`);
 
-          console.log(`[VERIFIKASI v33.0] ID Ujian: ${idPaket} | Angka DB Terdeteksi: "${angkaKelasDb}" | Input Siswa: "${angkaKelasTerpilih}"`);
+      // 3. VALIDASI ABSOLUT: Bandingkan kecocokan angka numerik kelas
+      if (angkaKelasDb !== "" && angkaKelasDb === angkaKelasTerpilih) {
+        let namaMapelMurni = "";
+        let namaPaketMurni = "";
 
-          // 3. ABSOLUTE FILTER MATCH GATE: Bandingkan murni integer angka vs angka
-          if (angkaKelasDb !== "" && angkaKelasDb === angkaKelasTerpilih) {
-            let namaMapelMurni = "";
-            let namaPaketMurni = "";
-
-            if (paket.konfigurasi) {
-              namaMapelMurni = paket.konfigurasi.mapel || paket.konfigurasi.mata_pelajaran || "";
-              namaPaketMurni = paket.konfigurasi.nama_paket || "";
-            }
-            
-            if (!namaMapelMurni) namaMapelMurni = paket.mapel || "";
-            if (!namaPaketMurni) namaPaketMurni = paket.nama_paket || "";
-
-            const mapelLabel = namaMapelMurni ? String(namaMapelMurni).toUpperCase() : "UJIAN AKTIF";
-            const paketLabel = namaPaketMurni ? ` - ${namaPaketMurni}` : "";
-            const textOpsiTampilan = `${mapelLabel}${paketLabel}`;
-
-            mapelSelect.innerHTML += `<option value="${idPaket}">${textOpsiTampilan}</option>`;
-            foundAny = true;
-          }
+        if (paket.konfigurasi) {
+          namaMapelMurni = paket.konfigurasi.mapel || paket.konfigurasi.mata_pelajaran || "";
+          namaPaketMurni = paket.konfigurasi.nama_paket || "";
         }
-      });
+        
+        if (!namaMapelMurni) namaMapelMurni = paket.mapel || "";
+        if (!namaPaketMurni) namaPaketMurni = paket.nama_paket || "";
 
+        const mapelLabel = namaMapelMurni ? String(namaMapelMurni).toUpperCase() : "UJIAN AKTIF";
+        const paketLabel = namaPaketMurni ? ` - ${namaPaketMurni}` : "";
+        const textOpsiTampilan = `${mapelLabel}${paketLabel}`;
+
+        mapelSelect.innerHTML += `<option value="${idPaket}">${textOpsiTampilan}</option>`;
+        foundAny = true;
+      }
+    }
+  });
+
+  if (foundAny) {
+    mapelSelect.disabled = false;
+    btnSubmit.disabled = false;
+  } else {
+    alert("Tidak ada paket ujian aktif untuk " + teksOpsiTerpilih + " saat ini.");
+  }
+}
       if (foundAny) {
         mapelSelect.disabled = false;
         btnSubmit.disabled = false;
