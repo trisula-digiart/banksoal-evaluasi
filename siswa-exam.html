@@ -149,12 +149,22 @@
           const rawSoal = dataPaket.list_soal;
           listSoal = {};
           
+          // REFACTOR PATCH: Deteksi pintar mapping array kosong/bergeser
           if (Array.isArray(rawSoal)) {
-            rawSoal.forEach((soal, idx) => {
-              if (soal) listSoal[idx + 1] = soal;
+            // Bersihkan elemen null di awal jika array ter-eksport dari baris kosong
+            const cleanArray = rawSoal.filter(item => item !== null && item !== undefined);
+            cleanArray.forEach((soal, idx) => {
+              listSoal[idx + 1] = soal;
             });
           } else {
-            listSoal = rawSoal;
+            // Jika bertipe objek, bersihkan properti kosong jika ada
+            let currentNum = 1;
+            Object.keys(rawSoal).forEach(key => {
+              if (rawSoal[key]) {
+                listSoal[currentNum] = rawSoal[key];
+                currentNum++;
+              }
+            });
           }
           
           totalSoal = Object.keys(listSoal).length;
@@ -257,7 +267,6 @@
       }
     }
 
-    // PATCH UPDATE: Mengamankan pembersihan layout jika ada data null di database kuis
     function showQuestion(index) {
       if (index < 1 || index > totalSoal) return;
       currentIndex = index;
@@ -299,6 +308,7 @@
       buildNomorGrid();
     }
 
+    // Koreksi typo variabel lokal agar sinkronisasi jawaban berjalan stabil
     function selectJawaban(hurufOpsi) {
       if (!jawabanTerpilih[currentIndex]) {
         jawabanTerpilih[currentIndex] = { jawaban: "", status_ragu: false };
