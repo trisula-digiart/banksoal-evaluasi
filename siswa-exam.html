@@ -106,7 +106,9 @@
     const idUjian = urlParams.get('id_ujian') || "EXAM-DEMO";
     
     if (session) {
-      document.getElementById('siswaName').innerText = session.nama;
+      // FALLBACK SAFE INJECTION: Jika session.uid tidak dikirim backend GAS, pakai session.username sebagai kunci path Firebase
+      session.uid = session.uid || session.username;
+      document.getElementById('siswaName').innerText = session.nama || session.username;
     }
 
     // Konfigurasi Kredensial Firebase Operasional Live Exam
@@ -126,48 +128,83 @@
 
     // 2. Fetch Initial State & Jalankan Engine Real-Time Sync
     async function initLiveExamEngine() {
+      if (!session || !session.uid) {
+        alert("Kritikal Deteksi: Sesi identitas siswa tidak valid. Silakan login ulang!");
+        AUTH_SERVICE.logout();
+        return;
+      }
+
       db.ref(`active_packages/${idUjian}`).once('value', async (snapshot) => {
-        const dataPaket = snapshot.val();
-        if (!dataPaket) {
-          alert("Akses Ujian Ditolak! Paket ujian tidak ditemukan atau belum aktif.");
-          window.location.href = "login.html";
-          return;
-        }
-
-        document.getElementById('examTitle').innerText = dataPaket.konfigurasi.nama_paket;
-        listSoal = dataPaket.list_soal;
-        totalSoal = Object.keys(listSoal).length;
-
-        db.ref(`live_exams/${idUjian}/${session.uid}`).once('value', (liveSnapshot) => {
-          const liveData = liveSnapshot.val();
-
-          if (liveData) {
-            jawabanTerpilih = liveData.jawaban_terpilih || {};
-            sisaWaktuDetik = liveData.sisa_waktu_detik;
-            
-            if (liveData.status_pengerjaan === "SUBMITTED") {
-              alert("Ujian ini sudah selesai dikerjakan, bro!");
-              window.location.href = `siswa-finish.html?id_ujian=${idUjian}`;
-              return;
-            }
-          } else {
-            sisaWaktuDetik = dataPaket.konfigurasi.durasi * 60;
-            db.ref(`live_exams/${idUjian}/${session.uid}`).set({
-              status_pengerjaan: "PROGRESS",
-              sisa_waktu_detik: sisaWaktuDetik,
-              jawaban_terpilih: {}
-            });
+        try {
+          const dataPaket = snapshot.val();
+          if (!dataPaket) {
+            alert("Akses Ujian Ditolak! Paket ujian tidak ditemukan atau belum aktif.");
+            window.location.href = "login.html";
+            return;
           }
 
-          buildNomorGrid();
-          showQuestion(currentIndex);
-          startTimerEngine();
-        });
+          // Cek kelayakan child node list_soal untuk menghindari fatal freeze
+          if (!dataPaket.list_soal) {
+            alert("Gagal Memuat Soal: Node 'list_soal' kosong atau tidak ditemukan di Firebase paket ini.");
+            document.getElementById('questionText').innerText = "Gagal memuat pertanyaan. Hubungi panitia ujian sekolah.";
+            return;
+          }
+
+          document.getElementById('examTitle').innerText = dataPaket.konfigurasi.nama_paket;
+          listSoal = dataPaket.list_soal;
+          totalSoal = Object.keys(listSoal).length;
+
+          // Ambil status riwayat pengerjaan berbasis kunci aman session.uid
+          db.ref(`live_exams/${idUjian}/${session.uid}`).once('value', (liveSnapshot) => {
+            try {
+              const liveData = liveSnapshot.val();
+
+              if (liveData) {
+                // Pulihkan data lembar jawaban lama jika sempat ter-refresh browser
+                jawabanTerpilih = liveData.jawaban_terpilih || {};
+                sisaWaktuDetik = (typeof liveData.sisa_waktu_detik !== 'undefined') ? liveData.sisa_waktu_detik : (dataPaket.konfigurasi.durasi * 60);
+                
+                if (liveData.status_pengerjaan === "SUBMITTED") {
+                  alert("Ujian ini sudah selesai dikerjakan, bro!");
+                  window.location.href = `siswa-finish.html?id_ujian=${idUjian}`;
+                  return;
+                }
+              } else {
+                // Inisialisasi record baru jika siswa baru pertama kali masuk ruang ujian
+                sisaWaktuDetik = dataPaket.konfigurasi.durasi * 60;
+                db.ref(`live_exams/${idUjian}/${session.uid}`).set({
+                  status_pengerjaan: "PROGRESS",
+                  sisa_waktu_detik: sisaWaktuDetik,
+                  jawaban_terpilih: {}
+                });
+              }
+
+              // Luncurkan kompilasi visual antarmuka
+              buildNomorGrid();
+              showQuestion(currentIndex);
+              startTimerEngine();
+
+            } catch (innerErr) {
+              console.error("Firebase Live Exam Recovery Crash:", innerErr);
+              alert("Gagal memulihkan status pengerjaan: " + innerErr.message);
+            }
+          });
+
+        } catch (outerErr) {
+          console.error("Firebase Active Packages Parser Crash:", outerErr);
+          alert("Gagal memproses master data paket ujian: " + outerErr.message);
+        }
       });
     }
 
     // 3. Engine Timer: Loop sync sisa waktu per detik ke Firebase
     function startTimerEngine() {
+      // Proteksi awal jika waktu memang sudah habis
+      if (sisaWaktuDetik <= 0) {
+        autoSubmitUjian();
+        return;
+      }
+
       timerInterval = setInterval(() => {
         if (sisaWaktuDetik <= 0) {
           clearInterval(timerInterval);
@@ -203,7 +240,7 @@
         if (itemState) {
           if (itemState.status_ragu) {
             bgClass = "bg-amber-500 text-white";
-          } else if (itemState.jawaban !== "") {
+          } else if (itemState.jawaban && itemState.jawaban !== "") {
             bgClass = "bg-emerald-500 text-white";
           }
         }
@@ -222,6 +259,7 @@
 
     // 5. Render Konten Soal Aktif
     function showQuestion(index) {
+      if (index < 1 || index > totalSoal) return;
       currentIndex = index;
       const soal = listSoal[index];
       
@@ -305,7 +343,7 @@
 
     // 8. Kirim Status Selesai ke Firebase & Alihkan ke Modul Kalkulator Nilai
     function autoSubmitUjian() {
-      clearInterval(timerInterval);
+      if(timerInterval) clearInterval(timerInterval);
       db.ref(`live_exams/${idUjian}/${session.uid}`).update({
         status_pengerjaan: "SUBMITTED"
       }).then(() => {
