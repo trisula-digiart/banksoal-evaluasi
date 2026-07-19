@@ -177,7 +177,7 @@
       } catch (err) { console.error(err); }
     }
 
-    // ARSITEKTUR v16.9: TEXTUAL STRUCTURAL SEARCH PROTOCOL
+    // ARSITEKTUR v17.0: ABSOLUTE SPECIFIC TARGET EXTRACTOR
     function filterMapelDropdown() {
       const kelasSelect = document.getElementById('siswaKelas');
       const kelasTerpilih = kelasSelect.value ? String(kelasSelect.value).trim() : "";
@@ -196,27 +196,22 @@
       Object.keys(masterPaketAktif).forEach(idPaket => {
         const paket = masterPaketAktif[idPaket];
         if (paket) {
-          // Buka visualisasi data penuh objek ke format string kapital
-          const dumpTeks = JSON.stringify(paket).toUpperCase();
-          
-          // Cari pola kunci penanda kelas spesifik untuk memutus bias ID acak
-          const kunciPola1 = `"KELAS":${kelasTerpilih}`;
-          const kunciPola2 = `"KELAS":"${kelasTerpilih}"`;
-          const kunciPola3 = `"KELAS":"KELAS ${kelasTerpilih}"`;
-          
-          // Alternatif pencarian fleksibel berdasarkan nama paket text di sheet
-          const polaTeksPaket = `KLS ${kelasTerpilih}`;
-          const polaTeksKelas = `KELAS ${kelasTerpilih}`;
+          // BACA SECARA AMAN DARI STRUKTUR UTAMA ATAU SUB-KONFIGURASI
+          let kelasDariDb = "";
+          if (paket.kelas !== undefined && paket.kelas !== null) {
+            kelasDariDb = String(paket.kelas).trim();
+          } else if (paket.konfigurasi && paket.konfigurasi.kelas !== undefined && paket.konfigurasi.kelas !== null) {
+            kelasDariDb = String(paket.konfigurasi.kelas).trim();
+          }
 
-          console.log(`[SCANNING PACK] ID: ${idPaket} | Target: "${kelasTerpilih}"`);
+          // AMBIL KARAKTER ANGKA SAJA DARI VALUE DATABASE
+          const matchDb = kelasDariDb.match(/\d+/);
+          const angkaKelasDb = matchDb ? matchDb[0] : "";
 
-          if (
-            dumpTeks.includes(kunciPola1) || 
-            dumpTeks.includes(kunciPola2) || 
-            dumpTeks.includes(kunciPola3) ||
-            dumpTeks.includes(polaTeksPaket) ||
-            dumpTeks.includes(polaTeksKelas)
-          ) {
+          console.log(`[CHECKING ENGINE] ID: ${idPaket} | Angka DB: "${angkaKelasDb}" | Target Siswa: "${kelasTerpilih}"`);
+
+          // VALIDASI ABSOLUT: COCOKKAN HANYA BILA ANGKA DATABASE RELEVAN DENGAN INPUT SISWA
+          if (angkaKelasDb !== "" && angkaKelasDb === kelasTerpilih) {
             let namaMapelMurni = paket.konfigurasi ? (paket.konfigurasi.mapel || paket.konfigurasi.mata_pelajaran) : paket.mapel;
             let namaPaketMurni = paket.konfigurasi ? paket.konfigurasi.nama_paket : paket.nama_paket;
 
