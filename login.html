@@ -44,16 +44,9 @@
     </form>
   </div>
 
+  <!-- Import Modul Otorisasi Pusat -->
+  <script src="auth-service.js"></script>
   <script>
-    const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxE_OIRpPdaAR91bwa3fT8myIKytHZF8P0_PH5ikF-9fqjAJqoi4NaLpKdHtn7o9V5zEA/exec';
-
-    async function sha256(message) {
-      const msgBuffer = new TextEncoder().encode(message);
-      const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-      const hashArray = Array.from(new Uint8Array(hashBuffer));
-      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-    }
-
     document.getElementById('loginForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       
@@ -68,44 +61,30 @@
       btnText.innerText = "Memproses...";
       alertEl.classList.add('hidden');
 
-      try {
-        const passwordHash = await sha256(passEl.value);
+      // Panggil gerbang keamanan AUTH_SERVICE terpusat
+      const res = await AUTH_SERVICE.login(userEl.value, passEl.value);
 
-        // Kirim string asli tanpa toLowerCase() untuk melihat kecocokan dengan data Sheets
-        const payload = {
-          action: "login",
-          payload: {
-            username: userEl.value.trim(),
-            password_hash: passwordHash
-          }
-        };
-
-        const response = await fetch(GAS_WEB_APP_URL, {
-          method: 'POST',
-          mode: 'cors',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify(payload)
-        });
-
-        if (!response.ok) throw new Error("Gagal terhubung ke server backend!");
-        const result = await response.json();
-
-        if (result.status === "SUCCESS") {
-          localStorage.setItem('cbt_session', JSON.stringify(result.data));
-          const role = result.data.role.toUpperCase();
-          if (role === 'ADMIN' || role === 'GURU' || role === 'OPERATOR') {
-            window.location.href = 'index.html';
-          } else {
-            window.location.href = 'siswa-exam-list.html';
-          }
+      if (res.success) {
+        const role = res.user.role.toUpperCase();
+        
+        // Pembagian kamar halaman berdasarkan otorisasi peran pengguna
+        if (role === 'ADMIN' || role === 'GURU' || role === 'OPERATOR') {
+          window.location.href = 'index.html';
+        } else if (role === 'SISWA') {
+          // PATCH: Mengarahkan siswa langsung menuju berkas ruang ujian yang valid
+          window.location.href = 'siswa-exam.html';
         } else {
-          // Tampilkan debug info apa hash yang dihasilkan oleh browser lu saat ini
-          throw new Error(`${result.error} (Hash Input: ${passwordHash})`);
+          // Penanganan jika ada role tidak dikenal masuk ke sistem
+          AUTH_SERVICE.clearSession();
+          alertText.innerText = "Hak akses peran (role) Anda tidak dikenali oleh sistem.";
+          alertEl.classList.remove('hidden');
+          btnEl.disabled = false;
+          btnText.innerText = "Masuk Aplikasi";
         }
-      } catch (error) {
-        alertText.innerText = error.message;
+      } else {
+        // Render galat jika kredensial salah atau koneksi gagal
+        alertText.innerText = res.message;
         alertEl.classList.remove('hidden');
-      } finally {
         btnEl.disabled = false;
         btnText.innerText = "Masuk Aplikasi";
       }
