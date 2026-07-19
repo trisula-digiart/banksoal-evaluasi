@@ -118,46 +118,46 @@
           </div>
         </div>
         
-        <!-- Summary Grid -->
+        <!-- Summary Cards Grid -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
             <div>
-              <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Total Soal</p>
-              <h3 class="text-2xl font-black text-slate-800 mt-1" id="dashCardSoal">0</h3>
+              <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Total Soal Master</p>
+              <h3 class="text-2xl font-black text-slate-800 mt-1" id="dashCardSoal">...</h3>
             </div>
             <span class="text-2xl p-3 bg-indigo-50 text-indigo-600 rounded-xl">📚</span>
           </div>
           <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
             <div>
               <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Mata Pelajaran</p>
-              <h3 class="text-2xl font-black text-slate-800 mt-1" id="dashCardMapel">0</h3>
+              <h3 class="text-2xl font-black text-slate-800 mt-1" id="dashCardMapel">...</h3>
             </div>
             <span class="text-2xl p-3 bg-emerald-50 text-emerald-600 rounded-xl">🧪</span>
           </div>
           <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
             <div>
-              <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Paket Ujian</p>
-              <h3 class="text-2xl font-black text-slate-800 mt-1" id="dashCardPaket">0</h3>
+              <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Paket Rilis Live</p>
+              <h3 class="text-2xl font-black text-slate-800 mt-1" id="dashCardPaket">...</h3>
             </div>
             <span class="text-2xl p-3 bg-amber-50 text-amber-600 rounded-xl">📅</span>
           </div>
           <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
             <div>
-              <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Total Guru</p>
-              <h3 class="text-2xl font-black text-slate-800 mt-1" id="dashCardGuru">1</h3>
+              <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Total Lembar Nilai</p>
+              <h3 class="text-2xl font-black text-slate-800 mt-1" id="dashCardGuru">...</h3>
             </div>
             <span class="text-2xl p-3 bg-rose-50 text-rose-600 rounded-xl">👥</span>
           </div>
         </div>
 
-        <!-- Charts -->
+        <!-- Charts Workspace -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm lg:col-span-1">
             <h4 class="text-xs font-bold text-slate-700 uppercase mb-4 tracking-wider">Statistik Soal Per Mapel</h4>
             <div class="h-64 flex items-center justify-center"><canvas id="chartMapel"></canvas></div>
           </div>
           <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm lg:col-span-2">
-            <h4 class="text-xs font-bold text-slate-700 uppercase mb-4 tracking-wider">Grafik Pembuatan Soal</h4>
+            <h4 class="text-xs font-bold text-slate-700 uppercase mb-4 tracking-wider">Grafik Distribusi Pembuatan Soal</h4>
             <div class="h-64 flex items-center justify-center"><canvas id="chartHistory"></canvas></div>
           </div>
         </div>
@@ -263,7 +263,7 @@
       <section id="view-importExcel" class="hidden space-y-6">
         <div>
           <h2 class="text-xl font-bold text-slate-800">Bulk Import Engine</h2>
-          <p class="text-xs text-slate-400 mt-0.5">Unggah file template Excel (.xlsx) untuk injeksi soal massal instan.</p>
+          <p class="text-xs text-slate-400 mt-0.5">Unggah file template Excel (.xlsx) untuk injeksi soal massal instan bypass limitasi harian.</p>
         </div>
         <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
           <div class="border-2 border-dashed border-slate-200 rounded-xl p-8 text-center bg-slate-50/50 hover:bg-slate-50 transition-all cursor-pointer relative">
@@ -277,7 +277,7 @@
           </div>
         </div>
         <div id="excelPreviewCard" class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hidden">
-          <div class="p-4 bg-slate-50 font-bold text-xs text-slate-700 border-b border-slate-200">Pratinjau Data Validasi Excel</div>
+          <div class="p-4 bg-slate-50 font-bold text-xs text-slate-700 border-b border-slate-200">Pratinjau Data Struktur Validasi Excel</div>
           <div class="overflow-x-auto max-h-80"><table class="w-full text-left border-collapse text-[11px]"><thead class="bg-slate-100 text-slate-600 uppercase font-bold border-b border-slate-200"><tr><th class="p-3">#</th><th class="p-3">Mapel</th><th class="p-3">Kelas</th><th class="p-3">Pertanyaan</th><th class="p-3">Kunci</th></tr></thead><tbody id="excelPreviewBody" class="divide-y divide-slate-100"></tbody></table></div>
         </div>
       </section>
@@ -329,7 +329,7 @@
         </div>
       </section>
 
-      <!-- LAYER 6: SCREEN PREVIEW LIVE EXAM SISWA (PATCHED DYNAMIC) -->
+      <!-- LAYER 6: SCREEN PREVIEW LIVE EXAM SISWA -->
       <section id="view-previewUjian" class="hidden space-y-6 select-none">
         <div class="bg-slate-900 text-white p-4 rounded-xl flex justify-between items-center shadow-sm">
           <div>
@@ -344,20 +344,14 @@
           </div>
         </div>
         <div id="pvExamContainer" class="grid grid-cols-1 lg:grid-cols-4 gap-6 hidden">
-          <!-- Kiri: Kotak Navigasi -->
           <div class="bg-white p-4 rounded-xl border border-slate-200 h-fit text-xs">
             <h4 class="font-bold text-slate-700 uppercase mb-3 text-[10px] tracking-wider">Navigasi Kotak Soal</h4>
-            <div class="grid grid-cols-5 gap-1.5" id="pvNavGrid">
-              <!-- Diisi dinamis via JS -->
-            </div>
+            <div class="grid grid-cols-5 gap-1.5" id="pvNavGrid"></div>
           </div>
-          <!-- Kanan: Konten Soal Aktif -->
           <div class="lg:col-span-3 bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
             <div class="px-3 py-1 bg-indigo-50 text-indigo-700 font-bold text-[10px] rounded w-fit uppercase" id="pvSoalNumberHeader">Soal Nomor -</div>
             <p class="text-sm font-semibold text-slate-800" id="pvSoalText">Memuat pertanyaan...</p>
-            <div class="space-y-2 text-xs" id="pvOpsiContainer">
-              <!-- Diisi dinamis via JS -->
-            </div>
+            <div class="space-y-2 text-xs" id="pvOpsiContainer"></div>
           </div>
         </div>
         <div id="pvEmptyState" class="bg-white p-12 text-center rounded-xl border border-slate-200 text-slate-400 font-medium">
@@ -365,24 +359,49 @@
         </div>
       </section>
 
-      <!-- LAYER 7: SCREEN ANALITIK HASIL UJIAN -->
+      <!-- LAYER 7: SCREEN ANALITIK HASIL UJIAN (DYNAMICALLY PATCHED) -->
       <section id="view-analitik" class="hidden space-y-6">
-        <div>
-          <h2 class="text-xl font-bold text-slate-800">Analitik Hasil Evaluasi</h2>
-          <p class="text-xs text-slate-400 mt-0.5">Metrik analisis daya serap siswa serta sebaran tingkat kelulusan KKM kelas.</p>
+        <div class="flex justify-between items-center">
+          <div>
+            <h2 class="text-xl font-bold text-slate-800">Analitik Hasil Evaluasi</h2>
+            <p class="text-xs text-slate-400 mt-0.5">Daftar rekam nilai real-time peserta didik langsung dari basis data cloud Sheets.</p>
+          </div>
+          <button onclick="fetchAnalitikNilai()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-sm transition-colors">🔄 Segarkan Nilai</button>
         </div>
+        
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm text-center">
-            <h5 class="text-xs font-bold text-slate-400 uppercase">Rata-rata Kelas</h5>
-            <h3 class="text-3xl font-black text-indigo-600 mt-1">0.00</h3>
+            <h5 class="text-xs font-bold text-slate-400 uppercase">Rata-rata Kelulusan</h5>
+            <h3 class="text-3xl font-black text-indigo-600 mt-1" id="anAvgScore">0.0</h3>
           </div>
           <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm text-center">
-            <h5 class="text-xs font-bold text-slate-400 uppercase">Nilai Tertinggi</h5>
-            <h3 class="text-3xl font-black text-emerald-600 mt-1">0</h3>
+            <h5 class="text-xs font-bold text-slate-400 uppercase">Skor Tertinggi</h5>
+            <h3 class="text-3xl font-black text-emerald-600 mt-1" id="anMaxScore">0</h3>
           </div>
           <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm text-center">
-            <h5 class="text-xs font-bold text-slate-400 uppercase">Jumlah Peserta</h5>
-            <h3 class="text-3xl font-black text-slate-800 mt-1">0</h3>
+            <h5 class="text-xs font-bold text-slate-400 uppercase">Total Lembar Ujian</h5>
+            <h3 class="text-3xl font-black text-slate-800 mt-1" id="anTotalSheets">0</h3>
+          </div>
+        </div>
+
+        <!-- Tabel Rekapitulasi Nilai Siswa -->
+        <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr class="bg-slate-50 border-b border-slate-200 font-bold text-slate-600 uppercase tracking-wider">
+                  <th class="p-4 w-12">No</th>
+                  <th class="p-4">Nama Siswa</th>
+                  <th class="p-4 w-32">Paket Ujian</th>
+                  <th class="p-4 w-20 text-center">Kelas</th>
+                  <th class="p-4 w-24 text-center">Skor Akhir</th>
+                  <th class="p-4 w-40">Waktu Kirim</th>
+                </tr>
+              </thead>
+              <tbody id="analitikTableBody" class="divide-y divide-slate-100">
+                <tr><td colspan="6" class="p-8 text-center text-slate-400 font-medium">Klik 'Segarkan Nilai' untuk memuat tabel dari Sheets...</td></tr>
+              </tbody>
+            </table>
           </div>
         </div>
       </section>
@@ -392,7 +411,7 @@
         <div class="flex justify-between items-center">
           <div>
             <h2 class="text-xl font-bold text-slate-800">Pustaka Aset Gambar & Media</h2>
-            <p class="text-xs text-slate-400 mt-0.5">Manajemen folder penyimpanan file multimedia pendukung visual lembar soal.</p>
+            <p class="text-xs text-slate-400 mt-0.5">Manajemen folder penyimpanan file multimedia.</p>
           </div>
           <button class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-sm">Upload Aset Ke Drive</button>
         </div>
@@ -493,6 +512,10 @@
 
     document.getElementById('gasUrlBadge').innerText = GAS_WEB_APP_URL.substring(0, 30) + "...";
 
+    // Global Instances untuk mempermudah mutasi runtime Chart.js
+    let mapelChartInstance = null;
+    let historyChartInstance = null;
+
     // 1. ENGINE ROUTER LAYER (Dynamic SPA Switcher View)
     function switchView(targetViewId) {
       const views = [
@@ -515,11 +538,49 @@
         }
       });
 
+      if (targetViewId === 'dashboard') fetchDashboardStats();
       if (targetViewId === 'bankSoal') fetchCloudBankSoal();
       if (targetViewId === 'previewUjian') fetchActiveFirebasePackages();
+      if (targetViewId === 'analitik') fetchAnalitikNilai();
     }
 
-    // 2. FETCH DATA BANK SOAL DARI GOOGLE APPS SCRIPT
+    // ==========================================
+    // 2A. DASHBOARD ANALYTICS CONNECTIVITY ENGINE
+    // ==========================================
+    async function fetchDashboardStats() {
+      try {
+        const res = await fetch(`${GAS_WEB_APP_URL}?action=getDashboardSummary`);
+        const result = await res.json();
+        
+        if (result.status === "SUCCESS") {
+          const summary = result.data.summary;
+          
+          // Render ke Widget Cards
+          document.getElementById('dashCardSoal').innerText = summary.totalSoal.toLocaleString('id-ID');
+          document.getElementById('dashCardMapel').innerText = summary.totalMapel;
+          document.getElementById('dashCardPaket').innerText = summary.totalPaket;
+          document.getElementById('dashCardGuru').innerText = summary.totalNilaiRows.toLocaleString('id-ID');
+          
+          // Update Chart Per Mapel secara dinamis
+          if (mapelChartInstance) {
+            mapelChartInstance.data.labels = result.data.charts.mapel.labels;
+            mapelChartInstance.data.datasets[0].data = result.data.charts.mapel.values;
+            mapelChartInstance.update();
+          }
+          
+          // Update Chart History secara dinamis
+          if (historyChartInstance) {
+            historyChartInstance.data.labels = result.data.charts.history.labels;
+            historyChartInstance.data.datasets[0].data = result.data.charts.history.values;
+            historyChartInstance.update();
+          }
+        }
+      } catch (err) {
+        console.error("Gagal melakukan sinkronisasi data dashboard center:", err);
+      }
+    }
+
+    // 2B. FETCH DATA BANK SOAL DARI GOOGLE APPS SCRIPT
     async function fetchCloudBankSoal() {
       const tbody = document.getElementById('bankSoalTableBody');
       tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-indigo-600 font-bold animate-pulse text-xs">Menghubungi Cloud Apps Script Engine...</td></tr>`;
@@ -549,7 +610,52 @@
       }
     }
 
-    // 2B. EXAM PACKAGE CREATION SYNC ENGINE
+    // ==========================================
+    // 2C. MODULE: EXAM RESULTS ANALYTICS ENGINE
+    // ==========================================
+    async function fetchAnalitikNilai() {
+      const tbody = document.getElementById('analitikTableBody');
+      tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-indigo-600 font-bold animate-pulse text-xs">Menarik Rekam Lembar Nilai dari Sheets...</td></tr>`;
+      
+      try {
+        const res = await fetch(`${GAS_WEB_APP_URL}?action=getNilaiList`);
+        const result = await res.json();
+        
+        if (result.status === "SUCCESS" && result.data.length > 0) {
+          let totalScore = 0;
+          let maxScore = 0;
+          
+          tbody.innerHTML = result.data.map((item, index) => {
+            const score = parseFloat(item.nilai) || 0;
+            totalScore += score;
+            if (score > maxScore) maxScore = score;
+            
+            return `
+              <tr class="hover:bg-slate-50/80 transition-colors font-medium text-slate-700">
+                <td class="p-4 text-slate-400 font-bold">${index + 1}</td>
+                <td class="p-4 text-slate-800 font-bold">${escapeHtml(item.nama_siswa)}</td>
+                <td class="p-4 font-semibold">${escapeHtml(item.nama_paket || item.id_ujian)}</td>
+                <td class="p-4 text-center font-bold text-indigo-600">${escapeHtml(item.kelas)}</td>
+                <td class="p-4 text-center font-mono font-black ${score >= 75 ? 'text-emerald-600' : 'text-rose-600'}">${score}</td>
+                <td class="p-4 text-slate-400 font-mono">${item.timestamp || '-'}</td>
+              </tr>
+            `;
+          }).join('');
+          
+          // Update Visual Agregat Atas
+          document.getElementById('anAvgScore').innerText = (totalScore / result.data.length).toFixed(1);
+          document.getElementById('anMaxScore').innerText = maxScore;
+          document.getElementById('anTotalSheets').innerText = result.data.length;
+          
+        } else {
+          tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-slate-400">Belum ada rekam lembar ujian siswa yang masuk ke Sheets.</td></tr>`;
+        }
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-red-500 font-bold">Gagal sinkronisasi modul analitik: ${err.message}</td></tr>`;
+      }
+    }
+
+    // 2D. EXAM PACKAGE CREATION SYNC ENGINE
     async function createExamPackage() {
       const btn = document.getElementById('btnSimpanPaket');
       const pktNama = document.getElementById('pktNama');
@@ -619,31 +725,32 @@
       }
     }
 
-    // ==========================================
-    // 2C. LIVE EXAM PREVIEW REAL-TIME CONTROLLER
-    // ==========================================
+    // 2E. LIVE EXAM PREVIEW REAL-TIME CONTROLLER
     let activeExamData = null;
     let currentActiveIndex = 1;
 
     async function fetchActiveFirebasePackages() {
       const selector = document.getElementById('pvPackageSelector');
+      if (!selector) return;
       selector.innerHTML = '<option value="">-- Mohon Tunggu... --</option>';
       
       try {
         const res = await fetch(`${FIREBASE_DB_URL}active_packages.json`);
+        if (!res.ok) throw new Error(`Server Firebase merespons status ${res.status}`);
         const data = await res.json();
         
         selector.innerHTML = '<option value="">-- Pilih Paket Aktif --</option>';
-        if (data) {
+        if (data && typeof data === 'object') {
           Object.keys(data).forEach(key => {
-            const config = data[key].konfigurasi;
-            selector.innerHTML += `<option value="${key}">${config.nama_paket || key} (${config.id_ujian || key})</option>`;
+            if (data[key] && data[key].konfigurasi) {
+              const config = data[key].konfigurasi;
+              selector.innerHTML += `<option value="${key}">${config.nama_paket || key} (${config.id_ujian || key})</option>`;
+            }
           });
         } else {
           selector.innerHTML = '<option value="">-- Tidak Ada Paket Ujian Aktif di Firebase --</option>';
         }
       } catch(err) {
-        console.error(err);
         selector.innerHTML = '<option value="">-- Gagal Memuat Paket Firebase --</option>';
       }
     }
@@ -667,14 +774,11 @@
           emptyState.classList.add('hidden');
           container.classList.remove('hidden');
           
-          // Render Metadata Header
           document.getElementById('pvPaketTitle').innerText = activeExamData.konfigurasi.nama_paket;
           document.getElementById('pvPaketMeta').innerText = `Durasi: ${activeExamData.konfigurasi.durasi} Menit | ID: ${activeExamData.konfigurasi.id_ujian}`;
           document.getElementById('pvTimer').innerText = `${activeExamData.konfigurasi.durasi}:00`;
           
-          // Render Kotak Navigasi Nomor
           renderPreviewNavGrid();
-          // Render Soal Pertama bawaan
           currentActiveIndex = 1;
           renderActivePreviewSoal();
         }
@@ -718,28 +822,23 @@
       `;
     }
 
-    // 3. ENGINE EXCEL BULK IMPORTER HANDLER (SheetJS Validation)
+    // 3. ENGINE EXCEL BULK IMPORTER HANDLER
     let excelParsedData = [];
     document.getElementById('excelFileInput').addEventListener('change', function(e) {
       const file = e.target.files[0];
       if (!file) return;
-
       document.getElementById('importStatusText').innerText = "Membaca data file Excel...";
       const reader = new FileReader();
-      
       reader.onload = function(evt) {
         try {
           const data = new Uint8Array(evt.target.result);
           const workbook = XLSX.read(data, { type: 'array' });
           const worksheet = workbook.Sheets[workbook.SheetNames[0]];
           const jsonData = XLSX.utils.sheet_to_json(worksheet);
-          
           if (jsonData.length === 0) throw new Error("File Excel kosong, bro!");
-
           excelParsedData = jsonData;
           document.getElementById('importStatusText').innerText = `${jsonData.length} baris data terdeteksi valid. Ready.`;
           document.getElementById('btnSyncExcel').removeAttribute('disabled');
-          
           document.getElementById('excelPreviewCard').classList.remove('hidden');
           const pBody = document.getElementById('excelPreviewBody');
           pBody.innerHTML = jsonData.slice(0, 5).map((row, i) => `
@@ -758,13 +857,11 @@
       reader.readAsArrayBuffer(file);
     });
 
-    // 4. BULK INSERT SUBMIT SYNC ENGINE TO APPS SCRIPT
     async function submitBulkData() {
       if(excelParsedData.length === 0) return;
       const btn = document.getElementById('btnSyncExcel');
       btn.innerText = "Mengirim...";
       btn.disabled = true;
-
       const mappedData = excelParsedData.map(row => ({
         mapel: String(row['Mata Pelajaran'] || ''),
         kelas: String(row['Kelas'] || ''),
@@ -779,7 +876,6 @@
         kunci_jawaban: String(row['Kunci Jawaban'] || 'A'),
         pembahasan: ""
       }));
-
       try {
         const res = await fetch(GAS_WEB_APP_URL, {
           method: "POST",
@@ -802,25 +898,30 @@
       }
     }
 
-    // 5. INITIALIZE CHARTS
+    // 4. INITIALIZE CHARTS ON LOAD WITH INSTANCE STORAGE
     window.onload = function() {
-      new Chart(document.getElementById('chartMapel'), {
+      // Inisialisasi awal Grafik Donut Mapel (Statis sementara sebelum fetch rampung)
+      mapelChartInstance = new Chart(document.getElementById('chartMapel'), {
         type: 'doughnut',
         data: {
-          labels: ['Matematika', 'B. Indonesia', 'B. Inggris', 'IPA'],
-          datasets: [{ data: [2458, 2345, 1887, 1290], backgroundColor: ['#4F46E5', '#10B981', '#F59E0B', '#EF4444'] }]
+          labels: ['Memuat...'],
+          datasets: [{ data: [0], backgroundColor: ['#4F46E5', '#10B981', '#F59E0B', '#EF4444'] }]
         },
         options: { responsive: true, maintainAspectRatio: false }
       });
 
-      new Chart(document.getElementById('chartHistory'), {
+      // Inisialisasi awal Grafik Line History
+      historyChartInstance = new Chart(document.getElementById('chartHistory'), {
         type: 'line',
         data: {
-          labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun'],
-          datasets: [{ label: 'Stok Soal', data: [30, 45, 60, 55, 80, 100], borderColor: '#4F46E5', tension: 0.3 }]
+          labels: ['...'],
+          datasets: [{ label: 'Stok Soal Kumulatif', data: [0], borderColor: '#4F46E5', tension: 0.3 }]
         },
         options: { responsive: true, maintainAspectRatio: false }
       });
+
+      // Triger fetch data awal dashboard
+      fetchDashboardStats();
     };
 
     function escapeHtml(str) {
