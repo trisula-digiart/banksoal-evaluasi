@@ -38,7 +38,6 @@
     </div>
 
     <!-- FORM 1: LOGIN SISWA (DINAMIS DROPDOWN) -->
-    <!-- PATCH: Tambahkan autocomplete="off" global untuk mematikan intervensi cache browser -->
     <form id="studentForm" class="space-y-4" autocomplete="off">
       <div>
         <label class="block mb-1.5 text-sm font-medium text-slate-700">Nama Siswa</label>
@@ -137,11 +136,13 @@
       try {
         const snapshot = await db.ref('active_packages').once('value');
         masterPaketAktif = snapshot.val() || {};
-        console.log("=== CORE DATA V8 BERHASIL DIUNDUH ===");
+        console.log("=== CORE DATA V9 INSTALLED BERHASIL ===");
         
-        // PENTING: Bersihkan value select ke default agar tidak terpicu autofill usang browser
-        kelasSelect.selectedIndex = 0;
+        // AMAN: Paksa reset value select ke string kosong absolut untuk mematahkan cache memori browser
+        kelasSelect.options[0].value = "";
         kelasSelect.options[0].text = "-- Pilih Kelas --";
+        kelasSelect.value = "";
+        kelasSelect.selectedIndex = 0;
         kelasSelect.disabled = false;
 
         if (Object.keys(masterPaketAktif).length === 0) {
@@ -165,12 +166,11 @@
       mapelSelect.disabled = true;
       btnSubmit.disabled = true;
 
-      // DEFENSIVE GUARD 1: Jika opsi default ter-klik atau nilai kosong, STOP total (Jangan lempar alert!)
+      // PROTEKSI UTAMA: Jika nilai select kosong murni (opsi awal), keluar langsung tanpa alert
       if (!kelasTerpilih || kelasTerpilih === "") {
         return;
       }
 
-      // DEFENSIVE GUARD 2: Jika data Firebase belum siap unduh, kunci eksekusi
       if (masterPaketAktif === null || Object.keys(masterPaketAktif).length === 0) {
         return;
       }
@@ -180,10 +180,21 @@
 
       Object.keys(masterPaketAktif).forEach(idPaket => {
         const paket = masterPaketAktif[idPaket];
-        if (paket && paket.konfigurasi) {
-          const rawKelas = paket.konfigurasi.kelas || paket.konfigurasi.kelas_target || "";
-          const dbMapel = paket.konfigurasi.mapel || paket.konfigurasi.mata_pelajaran || "Ujian";
-          const namaPaket = paket.konfigurasi.nama_paket || "Paket Ujian";
+        if (paket) {
+          // ULTRA-DEFENSIVE PROPERTY SCANNERS (Membaca struktur bertingkat maupun datar)
+          let rawKelas = "";
+          let dbMapel = "Ujian";
+          let namaPaket = "Paket Ujian";
+
+          if (paket.konfigurasi) {
+            rawKelas = paket.konfigurasi.kelas || paket.konfigurasi.kelas_target || "";
+            dbMapel = paket.konfigurasi.mapel || paket.konfigurasi.mata_pelajaran || "Ujian";
+            namaPaket = paket.konfigurasi.nama_paket || "Paket Ujian";
+          } else {
+            rawKelas = paket.kelas || paket.kelas_target || "";
+            dbMapel = paket.mapel || paket.mata_pelajaran || "Ujian";
+            namaPaket = paket.nama_paket || "Paket Ujian";
+          }
 
           const cleanDbKelas = String(rawKelas).replace(/[^0-9]/g, "").trim();
 
@@ -200,7 +211,7 @@
         btnSubmit.disabled = false;
       } else {
         const teksOpsiTerpilih = kelasSelect.options[kelasSelect.selectedIndex].text;
-        alert("VERSI BARU KODE: Tidak ada paket ujian aktif untuk " + teksOpsiTerpilih + " saat ini.");
+        alert("Tidak ada paket ujian aktif untuk " + teksOpsiTerpilih + " saat ini.");
       }
     }
 
