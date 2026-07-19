@@ -19,20 +19,53 @@
       <div class="lg:col-span-2 space-y-5">
         <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 space-y-4">
           <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider border-b border-slate-50 pb-2">Identitas Ujian</h3>
+          
           <div>
             <label class="block mb-2 text-sm font-medium text-slate-700">Nama Paket / Ujian</label>
             <input type="text" id="nama_paket" required placeholder="Contoh: Ujian Harian Aljabar Bab 2" class="w-full px-4 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500">
           </div>
-          <div class="grid grid-cols-2 gap-4">
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- PATCH: Mengubah Input Mapel Menjadi Dropdown Baku -->
             <div>
               <label class="block mb-2 text-sm font-medium text-slate-700">Mata Pelajaran</label>
-              <input type="text" id="mapel" required placeholder="Matematika" class="w-full px-4 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+              <select id="mapel" required onchange="handleMapelSelectionChange()" class="w-full px-4 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+                <option value="">-- Pilih Mata Pelajaran --</option>
+                <option value="BAHASA INDONESIA">BAHASA INDONESIA</option>
+                <option value="MATEMATIKA">MATEMATIKA</option>
+                <option value="IPAS">IPAS</option>
+                <option value="PENDIDIKAN PANCASILA">PENDIDIKAN PANCASILA</option>
+                <option value="PENDIDIKAN AGAMA">PENDIDIKAN AGAMA</option>
+                <option value="PJOK">PJOK</option>
+                <option value="SENI BUDAYA">SENI BUDAYA</option>
+                <option value="BAHASA INGGRIS">BAHASA INGGRIS</option>
+                <option value="MUATAN LOKAL">MUATAN LOKAL</option>
+                <option value="__CUSTOM__" class="text-indigo-600 font-bold">+ TAMBAH MAPEL BARU (MANUAL)</option>
+              </select>
             </div>
+            
+            <!-- PATCH: Mengubah Input Kelas Menjadi Dropdown Baku Angka 1-6 -->
             <div>
               <label class="block mb-2 text-sm font-medium text-slate-700">Target Kelas</label>
-              <input type="text" id="kelas" required placeholder="Contoh: 5 atau X" class="w-full px-4 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+              <select id="kelas" required class="w-full px-4 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+                <option value="">-- Pilih Kelas --</option>
+                <option value="1">Kelas 1</option>
+                <option value="2">Kelas 2</option>
+                <option value="3">Kelas 3</option>
+                <option value="4">Kelas 4</option>
+                <option value="5">Kelas 5</option>
+                <option value="6">Kelas 6</option>
+              </select>
             </div>
           </div>
+
+          <!-- PATCH DYNAMIC TOGGLE BLOCK: Input Text Baru Kustom Mapel (Hidden Secara Default) -->
+          <div id="customMapelBlock" class="hidden p-4 bg-indigo-50/50 rounded-xl border border-indigo-100/50 transition-all">
+            <label class="block mb-2 text-sm font-medium text-indigo-900">Tulis Nama Mata Pelajaran Baru</label>
+            <input type="text" id="mapel_kustom" placeholder="Masukkan nama mata pelajaran baru kustom" class="w-full px-4 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+            <span class="text-xs text-indigo-500 mt-1 block">* Pastikan penulisan ejaan benar agar singkron dengan sistem.</span>
+          </div>
+
         </div>
 
         <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 space-y-4">
@@ -110,6 +143,23 @@
   <script>
     AUTH_SERVICE.checkSession(['ADMIN', 'GURU']);
 
+    // PATCH VISUAL INTERCEPTOR: Menampilkan/menyembunyikan input kustom mapel secara real-time
+    function handleMapelSelectionChange() {
+      const mapelSelect = document.getElementById('mapel');
+      const customBlock = document.getElementById('customMapelBlock');
+      const customInput = document.getElementById('mapel_kustom');
+
+      if (mapelSelect.value === '__CUSTOM__') {
+        customBlock.classList.remove('hidden');
+        customInput.required = true;
+        customInput.focus();
+      } else {
+        customBlock.classList.add('hidden');
+        customInput.required = false;
+        customInput.value = "";
+      }
+    }
+
     document.getElementById('paketForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       
@@ -118,10 +168,10 @@
       btn.innerText = "Memproses Sinkronisasi Data...";
 
       try {
-        // Pengecekan elemen DOM secara defensif
         const namaPaketEl = document.getElementById('nama_paket');
-        const mapelEl = document.getElementById('mapel');
-        const kelasEl = document.getElementById('kelas');
+        const mapelSelectEl = document.getElementById('mapel');
+        const customMapelInputEl = document.getElementById('mapel_kustom');
+        const kelasSelectEl = document.getElementById('kelas');
         const durasiEl = document.getElementById('durasi');
         const jumlahSoalEl = document.getElementById('jumlah_soal');
         const waktuMulaiEl = document.getElementById('waktu_mulai');
@@ -131,16 +181,26 @@
         const tampilkanNilaiEl = document.getElementById('tampilkan_nilai');
         const statusEl = document.getElementById('status');
 
-        if (!namaPaketEl || !mapelEl || !kelasEl || !durasiEl || !jumlahSoalEl || !waktuMulaiEl || !waktuSelesaiEl) {
-          throw new Error("Ada elemen input HTML yang hilang atau strukturnya berubah, bro!");
+        if (!namaPaketEl || !mapelSelectEl || !kelasSelectEl || !durasiEl || !jumlahSoalEl || !waktuMulaiEl || !waktuSelesaiEl) {
+          throw new Error("Struktur elemen input HTML tidak valid!");
+        }
+
+        // PATCH INTEGRATION LOGIC: Ekstrak nilai mapel terpilih (gunakan input kustom jika memilih opsi custom)
+        let finalMapelValue = mapelSelectEl.value.trim();
+        if (finalMapelValue === '__CUSTOM__') {
+          finalMapelValue = customMapelInputEl.value.trim();
+        }
+
+        if (!finalMapelValue) {
+          throw new Error("Silakan pilih atau isi nama mata pelajaran terlebih dahulu!");
         }
 
         const payload = {
           action: "createPaketUjian",
           payload: {
             nama_paket: namaPaketEl.value.trim(),
-            mapel: mapelEl.value.trim().toUpperCase(), // Paksa uppercase biar match database
-            kelas: kelasEl.value.trim(),
+            mapel: finalMapelValue.toUpperCase(), // Tetap dipaksa UPPERCASE agar sinkronisasi filter database presisi
+            kelas: kelasSelectEl.value.trim(),     // Mengirim string angka murni "1" - "6"
             durasi: parseInt(durasiEl.value) || 0,
             jumlah_soal: parseInt(jumlahSoalEl.value) || 0,
             waktu_mulai: waktuMulaiEl.value,
