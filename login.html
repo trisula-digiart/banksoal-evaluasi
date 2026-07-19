@@ -12,7 +12,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
   
   <style>
-    /* Mengunci zoom via CSS dan memastikan text-size tetap stabil di mobile --> */
+    /* Mengunci zoom via CSS dan memastikan text-size tetap stabil di mobile */
     html, body {
       width: 100%;
       height: 100%;
@@ -216,7 +216,7 @@
       }
     }
 
-    // REGRESSION REMOVAL: Pembersihan Total Interseptor Karakter Huruf "I" Global
+    // ARSITEKTUR v32.0: PURE REGEX DIGIT STRIPPER ENGINE WITHOUT MUTATION CAVEAT
     function filterMapelDropdown() {
       const kelasSelect = document.getElementById('siswaKelas');
       const kelasTerpilihRaw = kelasSelect.value ? String(kelasSelect.value).trim() : "";
@@ -231,6 +231,7 @@
       if (!kelasTerpilihRaw || kelasTerpilihRaw === "") return;
       if (!masterPaketAktif) return;
 
+      // Ambil angka murni terpilih (Contoh: "3")
       const matchTerpilih = kelasTerpilihRaw.match(/\d+/);
       const angkaKelasTerpilih = matchTerpilih ? matchTerpilih[0] : "";
 
@@ -246,22 +247,24 @@
             dbKelasRaw = String(paket.kelas).trim();
           }
 
-          // Gunakan mapping array statis berbasis kata utuh (word boundaries) untuk konversi Romawi aman
+          // Kamus Romawi yang dievaluasi secara terisolasi tanpa merusak string alfabet utuh
           let dbKelasNormal = dbKelasRaw.toUpperCase();
-          const mapRomawi = { 
-            "III": "3", "II": "2", "IV": "4", "VI": "6", "V": "5", "I": "1" 
-          };
           
-          Object.keys(mapRomawi).forEach(romawiKey => {
-            // Memastikan penukaran string Romawi hanya terjadi jika berdiri sendiri atau dipisah spasi
-            const regexRomawi = new RegExp(`\\b${romawiKey}\\b`, 'g');
-            dbKelasNormal = dbKelasNormal.replace(regexRomawi, mapRomawi[romawiKey]);
-          });
+          // Konversi angka romawi ke angka biasa dengan pencocokan kata utuh (\b) secara aman
+          dbKelasNormal = dbKelasNormal.replace(/\bIII\b/g, "3")
+                                       .replace(/\bII\b/g, "2")
+                                       .replace(/\bIV\b/g, "4")
+                                       .replace(/\bVI\b/g, "6")
+                                       .replace(/\bV\b/g, "5")
+                                       .replace(/\bI\b/g, "1");
 
-          // Ambil angka hasil parsing final
+          // Ekstrak angka numerik asli (Contoh: "Kelas 3" -> "3" atau "3" -> "3")
           const matchDb = dbKelasNormal.match(/\d+/);
           const angkaKelasDb = matchDb ? matchDb[0] : "";
 
+          console.log(`[EVALUASI v32.0] ID Ujian: ${idPaket} | Angka DB Terdeteksi: "${angkaKelasDb}" | Input Siswa: "${angkaKelasTerpilih}"`);
+
+          // Pemadanan Angka Bersih Absolut (Mencegah Kebocoran & False-Negative)
           if (angkaKelasDb !== "" && angkaKelasDb === angkaKelasTerpilih) {
             let namaMapelMurni = "";
             let namaPaketMurni = "";
@@ -327,7 +330,7 @@
         if (res.success) {
           window.location.href = 'index.html';
         } else {
-          alertText.innerText = res.message || "Gagal masuk. Periksa kembali username dan password Anda.";
+          alertText.innerText = res.message || "Gagal masuk. Periksa kembali username and password Anda.";
           alertEl.classList.remove('hidden');
           btnEl.disabled = false;
           btnText.innerText = "Masuk Aplikasi Dashboard";
