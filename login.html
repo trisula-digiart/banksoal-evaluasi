@@ -216,7 +216,7 @@
       }
     }
 
-    // ARSITEKTUR v35.0: STABLE SYNTAX & FULL DIRECT DIGIT STRIPPER
+    // ARSITEKTUR v38.0: PURE STABLE MULTI-PATH FALLBACK MATCHER ENGINE
     function filterMapelDropdown() {
       const kelasSelect = document.getElementById('siswaKelas');
       const kelasTerpilihRaw = kelasSelect.value ? String(kelasSelect.value).trim() : "";
@@ -239,17 +239,37 @@
       Object.keys(masterPaketAktif).forEach(idPaket => {
         const paket = masterPaketAktif[idPaket];
         if (paket) {
+          
+          // PATH 1 & 2: Ambil data kelas dari konfigurasi sub-object atau root
           let dbKelasRaw = "";
-          if (paket.konfigurasi && paket.konfigurasi.kelas !== undefined) {
-            dbKelasRaw = paket.konfigurasi.kelas;
-          } else if (paket.kelas !== undefined) {
-            dbKelasRaw = paket.kelas;
+          if (paket.konfigurasi && paket.konfigurasi.kelas !== undefined && paket.konfigurasi.kelas !== null) {
+            dbKelasRaw = String(paket.konfigurasi.kelas).trim();
+          } else if (paket.kelas !== undefined && paket.kelas !== null) {
+            dbKelasRaw = String(paket.kelas).trim();
           }
 
-          // Direct Stripper Stabil: Ambil raw data, paksa string, bersihkan karakter selain angka
-          const angkaKelasDb = String(dbKelasRaw).replace(/[^0-9]/g, "").trim();
+          // PATH 3 (SMART FALLBACK): Jika data kelas di database kosong, scan dari teks nama paket
+          if (dbKelasRaw === "" || dbKelasRaw === "null" || dbKelasRaw === "undefined") {
+            const namaPaketScan = paket.konfigurasi && paket.konfigurasi.nama_paket ? String(paket.konfigurasi.nama_paket) : (paket.nama_paket ? String(paket.nama_paket) : "");
+            const scanMatch = namaPaketScan.match(/(?:KELAS|KLS)\s*([1-6])/i) || namaPaketScan.match(/\b([1-6])\b/);
+            if (scanMatch) {
+              dbKelasRaw = scanMatch[1];
+            }
+          }
 
-          console.log(`[VERIFIKASI v35.0] ID Ujian: ${idPaket} | Angka DB: "${angkaKelasDb}" | Input Siswa: "${angkaKelasTerpilih}"`);
+          // Ekstrak angka murni final bebas destruksi karakter alfabet
+          let dbKelasNormal = dbKelasRaw.toUpperCase();
+          dbKelasNormal = dbKelasNormal.replace(/\bIII\b/g, "3")
+                                       .replace(/\bII\b/g, "2")
+                                       .replace(/\bIV\b/g, "4")
+                                       .replace(/\bVI\b/g, "6")
+                                       .replace(/\bV\b/g, "5")
+                                       .replace(/\bI\b/g, "1");
+
+          const matchDb = dbKelasNormal.match(/\d+/);
+          const angkaKelasDb = matchDb ? matchDb[0] : "";
+
+          console.log(`[VERIFIKASI v38.0] ID: ${idPaket} | Angka DB: "${angkaKelasDb}" | Input Siswa: "${angkaKelasTerpilih}"`);
 
           if (angkaKelasDb !== "" && angkaKelasDb === angkaKelasTerpilih) {
             let namaMapelMurni = "";
