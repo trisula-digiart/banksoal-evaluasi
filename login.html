@@ -162,10 +162,16 @@
 
       Object.keys(masterPaketAktif).forEach(idPaket => {
         const paket = masterPaketAktif[idPaket];
-        if (paket && paket.konfigurasi && String(paket.konfigurasi.kelas_target) === String(kelasTerpilih)) {
-          const nameDisplay = `${paket.konfigurasi.nama_paket} (${paket.konfigurasi.mata_pelajaran.toUpperCase()})`;
-          mapelSelect.innerHTML += `<option value="${idPaket}">${nameDisplay}</option>`;
-          foundAny = true;
+        if (paket && paket.konfigurasi) {
+          // PATCH COMPATIBILITY: Mendeteksi field 'kelas' ATAU 'kelas_target' dari Firebase
+          const dbKelas = paket.konfigurasi.kelas || paket.konfigurasi.kelas_target || "";
+          const dbMapel = paket.konfigurasi.mapel || paket.konfigurasi.mata_pelajaran || "Ujian";
+
+          if (String(dbKelas) === String(kelasTerpilih)) {
+            const nameDisplay = `${paket.konfigurasi.nama_paket} (${String(dbMapel).toUpperCase()})`;
+            mapelSelect.innerHTML += `<option value="${idPaket}">${nameDisplay}</option>`;
+            foundAny = true;
+          }
         }
       });
 
