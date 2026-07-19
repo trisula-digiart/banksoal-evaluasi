@@ -273,7 +273,7 @@
           <div class="border-2 border-dashed border-slate-200 rounded-xl p-8 text-center bg-slate-50/50 hover:bg-slate-50 transition-all cursor-pointer relative">
             <input type="file" id="excelFileInput" class="absolute inset-0 opacity-0 cursor-pointer" accept=".xlsx, .xls">
             <span class="text-3xl block mb-2">📁</span>
-            <p class="text-xs font-bold text-slate-700">Drag & Drop file Excel di sini atau klik untuk browse</p>
+            <p class="text-xs font-bold text-slate-700">Drag & Drop file Excel di sini or klik untuk browse</p>
             <p class="text-[10px] text-slate-400 mt-1">Hanya mendukung format ekstensi berkas .xlsx / .xls</p>
           </div>
           <div class="flex justify-between items-center text-xs">
@@ -329,7 +329,7 @@
               <label class="flex items-center gap-2"><input type="checkbox" id="pktTampilNilai" checked class="rounded text-indigo-600"> Tampilkan Skor Instan Setelah Selesai</label>
             </div>
             <div class="pt-2">
-              <button onclick="createExamPackage()" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition-all shadow-md">Simpan & Rilis Paket Live</button>
+              <button onclick="createExamPackage()" id="btnSimpanPaket" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition-all shadow-md">Simpan & Rilis Paket Live</button>
             </div>
           </div>
         </div>
@@ -551,6 +551,85 @@
         }
       } catch (err) {
         tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-red-500 font-bold">Error Integrasi: ${err.message}</td></tr>`;
+      }
+    }
+
+    // ==========================================
+    // 2B. FIXED MODULE: EXAM PACKAGE CREATION SYNC ENGINE
+    // ==========================================
+    async function createExamPackage() {
+      const btn = document.getElementById('btnSimpanPaket');
+      
+      // Ambil referensi elemen DOM masukan secara aman
+      const pktNama = document.getElementById('pktNama');
+      const pktMapel = document.getElementById('pktMapel');
+      const pktKelas = document.getElementById('pktKelas');
+      const pktDurasi = document.getElementById('pktDurasi');
+      const pktJumlahSoal = document.getElementById('pktJumlahSoal');
+      const pktAcakSoal = document.getElementById('pktAcakSoal');
+      const pktAcakOpsi = document.getElementById('pktAcakOpsi');
+      const pktTampilNilai = document.getElementById('pktTampilNilai');
+
+      // Validasi kelengkapan isian form sederhana
+      if (!pktNama.value.trim() || !pktMapel.value.trim() || !pktKelas.value.trim()) {
+        alert("Waduh! Nama Paket, Mapel, dan Kelas Target wajib diisi, bro!");
+        return;
+      }
+
+      // Kunci tombol agar anti-double trigger
+      btn.disabled = true;
+      btn.innerText = "Memproses Sinkronisasi Data...";
+
+      // Konstruksi waktu tiruan (mock data) 24 jam ke depan untuk mencegah fatal error datetime sheet
+      const now = new Date();
+      const tomorrow = new Date(now.getTime() + (24 * 60 * 60 * 1000));
+      const mockWaktuMulai = now.toISOString().slice(0, 16);
+      const mockWaktuSelesai = tomorrow.toISOString().slice(0, 16);
+
+      const payload = {
+        action: "createPaketUjian",
+        payload: {
+          nama_paket: pktNama.value.trim(),
+          mapel: pktMapel.value.trim().toUpperCase(), 
+          kelas: pktKelas.value.trim(),
+          durasi: parseInt(pktDurasi.value) || 90,
+          jumlah_soal: parseInt(pktJumlahSoal.value) || 10,
+          waktu_mulai: mockWaktuMulai,
+          waktu_selesai: mockWaktuSelesai,
+          acak_soal: pktAcakSoal ? pktAcakSoal.checked : true,
+          acak_opsi: pktAcakOpsi ? pktAcakOpsi.checked : true,
+          tampilkan_nilai: pktTampilNilai ? pktTampilNilai.checked : true,
+          status: "OPEN" 
+        }
+      };
+
+      try {
+        const res = await fetch(GAS_WEB_APP_URL, {
+          method: "POST",
+          mode: "cors",
+          headers: { "Content-Type": "text/plain" },
+          body: JSON.stringify(payload)
+        });
+        
+        const result = await res.json();
+
+        if (result.status === "SUCCESS") {
+          alert("🎉 Mantap! " + (result.data.message || "Paket live berhasil disinkronkan ke Sheets & Firebase."));
+          // Refresh dashboard data secara otomatis setelah sukses
+          switchView('dashboard');
+          // Reset form input
+          pktNama.value = "";
+          pktMapel.value = "";
+          pktKelas.value = "";
+        } else {
+          alert("Ditolak Core GAS: " + result.error);
+        }
+      } catch (err) {
+        alert("CRITICAL CONNECTION ERROR: Gagal terhubung ke pipa Dual-Write Engine!");
+        console.error(err);
+      } finally {
+        btn.disabled = false;
+        btn.innerText = "Simpan & Rilis Paket Live";
       }
     }
 
