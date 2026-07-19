@@ -93,7 +93,6 @@
     </form>
   </div>
 
-  <!-- PATCH CRITICAL: Pindahkan auth-service ke bawah dan beri tag defer agar tidak menginterupsi DOM awal -->
   <script src="auth-service.js" defer></script>
   
   <script>
@@ -105,16 +104,6 @@
 
     let masterPaketAktif = null;
     let currentMode = "SISWA";
-
-    // PENGHANCUR CACHE ALERT: Overwrite fungsi window.alert bawaan untuk membungkam alert Kelas 3 yang bocor dari file lain
-    const originalAlert = window.alert;
-    window.alert = function(msg) {
-      if (String(msg).includes("Kelas 3 saat ini") || String(msg).includes("Tidak ada paket ujian aktif")) {
-        console.warn("-> BERHASIL MEMBUNGKAM ALERT LIAR:", msg);
-        return false;
-      }
-      return originalAlert(msg);
-    };
 
     function switchTab(mode) {
       currentMode = mode;
@@ -134,13 +123,11 @@
     async function loadActivePackagesFromFirebase() {
       const kelasSelect = document.getElementById('siswaKelas');
       try {
-        // Bersihkan paksa memori lokal browser sebelum fetch demi membuang session hantu
         localStorage.removeItem("cbt_session");
         
         const snapshot = await db.ref('active_packages').once('value');
         masterPaketAktif = snapshot.val() || {};
-        console.log("=== VERSI 10: DATA FIREBASE SELESAI DIUNDUH ===");
-        console.log(masterPaketAktif);
+        console.log("=== VERSI 11: DATA FIREBASE READY ===");
         
         kelasSelect.options[0].text = "-- Pilih Kelas --";
         kelasSelect.value = "";
@@ -165,32 +152,14 @@
       if (!masterPaketAktif) return;
 
       let foundAny = false;
-      const cleanTargetKelas = String(kelasTerpilih).replace(/[^0-9]/g, "").trim();
 
+      // PATCH V11: Tampilkan semua paket ujian yang ada di database tanpa memedulikan filter key properti kelas yang hilang
       Object.keys(masterPaketAktif).forEach(idPaket => {
         const paket = masterPaketAktif[idPaket];
         if (paket) {
-          let rawKelas = "";
-          let dbMapel = "Ujian";
-          let namaPaket = "Paket Ujian";
-
-          if (paket.konfigurasi) {
-            rawKelas = paket.konfigurasi.kelas || paket.konfigurasi.kelas_target || "";
-            dbMapel = paket.konfigurasi.mapel || paket.konfigurasi.mata_pelajaran || "Ujian";
-            namaPaket = paket.konfigurasi.nama_paket || "Paket Ujian";
-          } else {
-            rawKelas = paket.kelas || paket.kelas_target || "";
-            dbMapel = paket.mapel || paket.mata_pelajaran || "Ujian";
-            namaPaket = paket.nama_paket || "Paket Ujian";
-          }
-
-          const cleanDbKelas = String(rawKelas).replace(/[^0-9]/g, "").trim();
-
-          if (cleanDbKelas !== "" && cleanDbKelas === cleanTargetKelas) {
-            const nameDisplay = `${namaPaket} (${String(dbMapel).toUpperCase()})`;
-            mapelSelect.innerHTML += `<option value="${idPaket}">${nameDisplay}</option>`;
-            foundAny = true;
-          }
+          const namaTampilan = idPaket; // Gunakan ID Ujian (contoh: EXAM-05DCEFF5) sebagai nama opsi dropdown
+          mapelSelect.innerHTML += `<option value="${idPaket}">${namaTampilan}</option>`;
+          foundAny = true;
         }
       });
 
@@ -198,8 +167,7 @@
         mapelSelect.disabled = false;
         btnSubmit.disabled = false;
       } else {
-        const teksOpsiTerpilih = kelasSelect.options[kelasSelect.selectedIndex].text;
-        originalAlert("Info: Tidak ada paket ujian aktif untuk " + teksOpsiTerpilih + " saat ini.");
+        alert("Tidak ada paket ujian aktif di database saat ini.");
       }
     }
 
