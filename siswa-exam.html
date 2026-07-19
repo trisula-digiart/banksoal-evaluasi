@@ -126,12 +126,11 @@
 
     // 2. Fetch Initial State & Jalankan Engine Real-Time Sync
     async function initLiveExamEngine() {
-      // Ambil data paket ujian dari path /active_packages/$id_ujian
       db.ref(`active_packages/${idUjian}`).once('value', async (snapshot) => {
         const dataPaket = snapshot.val();
         if (!dataPaket) {
           alert("Akses Ujian Ditolak! Paket ujian tidak ditemukan atau belum aktif.");
-          window.location.href = "login.html"; // PATCH: Dialihkan kembali ke gerbang login instansi
+          window.location.href = "login.html";
           return;
         }
 
@@ -139,22 +138,19 @@
         listSoal = dataPaket.list_soal;
         totalSoal = Object.keys(listSoal).length;
 
-        // Cek dulu ke path /live_exams/ apakah siswa ini udah punya session berjalan (Anti-Refresh Check)
         db.ref(`live_exams/${idUjian}/${session.uid}`).once('value', (liveSnapshot) => {
           const liveData = liveSnapshot.val();
 
           if (liveData) {
-            // Restore state jawaban dan waktu tersisa dari Firebase
             jawabanTerpilih = liveData.jawaban_terpilih || {};
             sisaWaktuDetik = liveData.sisa_waktu_detik;
             
             if (liveData.status_pengerjaan === "SUBMITTED") {
               alert("Ujian ini sudah selesai dikerjakan, bro!");
-              window.location.href = `siswa-finish.html?id_ujian=${idUjian}`; // PATCH: Alihkan langsung ke kalkulator nilai riil
+              window.location.href = `siswa-finish.html?id_ujian=${idUjian}`;
               return;
             }
           } else {
-            // Jika benar-benar baru pertama kali klik start, buat state awal di Firebase
             sisaWaktuDetik = dataPaket.konfigurasi.durasi * 60;
             db.ref(`live_exams/${idUjian}/${session.uid}`).set({
               status_pengerjaan: "PROGRESS",
@@ -163,7 +159,6 @@
             });
           }
 
-          // Render komponen layout dan nyalakan timer countdown per detik
           buildNomorGrid();
           showQuestion(currentIndex);
           startTimerEngine();
@@ -183,13 +178,11 @@
 
         sisaWaktuDetik--;
         
-        // Update Tampilan Jam di Header
         const jam = Math.floor(sisaWaktuDetik / 3600).toString().padStart(2, '0');
         const menit = Math.floor((sisaWaktuDetik % 3600) / 60).toString().padStart(2, '0');
         const detik = (sisaWaktuDetik % 60).toString().padStart(2, '0');
         document.getElementById('countdownTimer').innerText = `${jam}:${menit}:${detik}`;
 
-        // Sync sisa waktu ke Firebase setiap 5 detik sekali (Optimasi trafik WebSocket)
         if (sisaWaktuDetik % 5 === 0) {
           db.ref(`live_exams/${idUjian}/${session.uid}`).update({
             sisa_waktu_detik: sisaWaktuDetik
@@ -205,18 +198,18 @@
 
       for (let i = 1; i <= totalSoal; i++) {
         const itemState = jawabanTerpilih[i];
-        let bgClass = "bg-slate-200 text-slate-700 hover:bg-slate-300"; // Default belum diisi
+        let bgClass = "bg-slate-200 text-slate-700 hover:bg-slate-300";
 
         if (itemState) {
           if (itemState.status_ragu) {
-            bgClass = "bg-amber-500 text-white"; // Ragu-ragu
+            bgClass = "bg-amber-500 text-white";
           } else if (itemState.jawaban !== "") {
-            bgClass = "bg-emerald-500 text-white"; // Sudah diisi
+            bgClass = "bg-emerald-500 text-white";
           }
         }
 
         if (i === currentIndex) {
-          bgClass = "bg-indigo-600 text-white ring-4 ring-indigo-100"; // Sedang dibuka
+          bgClass = "bg-indigo-600 text-white ring-4 ring-indigo-100";
         }
 
         container.innerHTML += `
@@ -235,12 +228,10 @@
       document.getElementById('currentNumberBadge').innerText = index;
       document.getElementById('questionText').innerText = soal.soal;
 
-      // Render Opsi Radio A, B, C, D
       const containerOpsi = document.getElementById('optionsContainer');
       const currentAns = jawabanTerpilih[index] ? jawabanTerpilih[index].jawaban : "";
       const isRagu = jawabanTerpilih[index] ? jawabanTerpilih[index].status_ragu : false;
 
-      // Set Checkbox Status Ragu di bottom bar
       document.getElementById('chkRagu').checked = isRagu;
 
       const keys = ['a', 'b', 'c', 'd'];
@@ -255,11 +246,9 @@
         `;
       }).join('');
 
-      // Atur status disabled tombol navigasi
       document.getElementById('btnPrev').disabled = (index === 1);
       document.getElementById('btnNext').innerText = (index === totalSoal) ? "Selesai 🏁" : "Selanjutnya ➡️";
       
-      // Re-render highlight warna grid nomor biar update
       buildNomorGrid();
     }
 
@@ -271,7 +260,6 @@
 
       jawabanTerpilih[currentIndex].jawaban = hurufOpsi;
 
-      // Push state ke Firebase Live DB
       db.ref(`live_exams/${idUjian}/${session.uid}/jawaban_terpilih/${currentIndex}`).update({
         jawaban: hurufOpsi
       });
@@ -295,7 +283,6 @@
       showQuestion(currentIndex);
     }
 
-    // Navigasi Tombol
     function navigateQuestion(step) {
       const target = currentIndex + step;
       if (target >= 1 && target <= totalSoal) {
@@ -322,7 +309,6 @@
       db.ref(`live_exams/${idUjian}/${session.uid}`).update({
         status_pengerjaan: "SUBMITTED"
       }).then(() => {
-        // Alihkan halaman ke modul finish untuk pemrosesan nilai final ke Sheets
         window.location.href = `siswa-finish.html?id_ujian=${idUjian}`;
       });
     }
