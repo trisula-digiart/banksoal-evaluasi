@@ -148,7 +148,7 @@
     }
 
     function filterMapelDropdown() {
-      const kelasTerpilih = document.getElementById('siswaKelas').value;
+      const kelasTerpilih = document.getElementById('siswaKelas').value.trim();
       const mapelSelect = document.getElementById('siswaMapel');
       const btnSubmit = document.getElementById('btnSubmitSiswa');
 
@@ -163,11 +163,15 @@
       Object.keys(masterPaketAktif).forEach(idPaket => {
         const paket = masterPaketAktif[idPaket];
         if (paket && paket.konfigurasi) {
-          // PATCH COMPATIBILITY: Mendeteksi field 'kelas' ATAU 'kelas_target' dari Firebase
-          const dbKelas = paket.konfigurasi.kelas || paket.konfigurasi.kelas_target || "";
+          // Ambil data dari simpul alternatif mana pun yang terisi
+          const rawKelas = paket.konfigurasi.kelas || paket.konfigurasi.kelas_target || "";
           const dbMapel = paket.konfigurasi.mapel || paket.konfigurasi.mata_pelajaran || "Ujian";
 
-          if (String(dbKelas) === String(kelasTerpilih)) {
+          // ADVANCED SANITIZER: Ekstrak hanya karakter angka murni dari record data Firebase
+          const cleanDbKelas = String(rawKelas).replace(/[^0-9]/g, "").trim();
+          const cleanTargetKelas = String(kelasTerpilih).replace(/[^0-9]/g, "").trim();
+
+          if (cleanDbKelas !== "" && cleanDbKelas === cleanTargetKelas) {
             const nameDisplay = `${paket.konfigurasi.nama_paket} (${String(dbMapel).toUpperCase()})`;
             mapelSelect.innerHTML += `<option value="${idPaket}">${nameDisplay}</option>`;
             foundAny = true;
