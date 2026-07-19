@@ -282,7 +282,7 @@
         </div>
       </section>
 
-      <!-- LAYER 5: SCREEN BUAT PAKET UJIAN BARU -->
+      <!-- LAYER 5: SCREEN BUAT PAKET UJIAN BARU (PATCHED DROPDOWN HARMONIZATION v4) -->
       <section id="view-paketUjian" class="hidden space-y-6">
         <div>
           <h2 class="text-xl font-bold text-slate-800">Paket Ujian Baru</h2>
@@ -292,18 +292,47 @@
           <div class="space-y-4">
             <div>
               <label class="block font-bold text-slate-600 mb-1">Nama Paket Ujian</label>
-              <input type="text" id="pktNama" placeholder="PTS Genap IPA Kelas VIII" class="w-full px-3 py-2 border border-slate-200 rounded-lg">
+              <input type="text" id="pktNama" placeholder="Contoh: PTS Genap IPAS Kelas 5" class="w-full px-3 py-2 border border-slate-200 rounded-lg">
             </div>
             <div class="grid grid-cols-2 gap-3">
+              <!-- PATCH DROPDOWN MAPEL UTAMA SD -->
               <div>
                 <label class="block font-bold text-slate-600 mb-1">Mata Pelajaran Target</label>
-                <input type="text" id="pktMapel" placeholder="IPA" class="w-full px-3 py-2 border border-slate-200 rounded-lg">
+                <select id="pktMapel" onchange="handlePktMapelChange()" class="w-full px-3 py-2 border border-slate-200 rounded-lg bg-white outline-none focus:ring-2 focus:ring-indigo-500">
+                  <option value="">-- Pilih Mapel --</option>
+                  <option value="BAHASA INDONESIA">BAHASA INDONESIA</option>
+                  <option value="MATEMATIKA">MATEMATIKA</option>
+                  <option value="IPAS">IPAS</option>
+                  <option value="PENDIDIKAN PANCASILA">PENDIDIKAN PANCASILA</option>
+                  <option value="PENDIDIKAN AGAMA">PENDIDIKAN AGAMA</option>
+                  <option value="PJOK">PJOK</option>
+                  <option value="SENI BUDAYA">SENI BUDAYA</option>
+                  <option value="BAHASA INGGRIS">BAHASA INGGRIS</option>
+                  <option value="MUATAN LOKAL">MUATAN LOKAL</option>
+                  <option value="__CUSTOM__" class="text-indigo-600 font-bold">+ TAMBAH MAPEL BARU (MANUAL)</option>
+                </select>
               </div>
+              <!-- PATCH DROPDOWN KELAS TARGET BAKU -->
               <div>
                 <label class="block font-bold text-slate-600 mb-1">Kelas Target</label>
-                <input type="text" id="pktKelas" placeholder="VIII" class="w-full px-3 py-2 border border-slate-200 rounded-lg">
+                <select id="pktKelas" class="w-full px-3 py-2 border border-slate-200 rounded-lg bg-white outline-none focus:ring-2 focus:ring-indigo-500">
+                  <option value="">-- Pilih Kelas --</option>
+                  <option value="1">Kelas 1</option>
+                  <option value="2">Kelas 2</option>
+                  <option value="3">Kelas 3</option>
+                  <option value="4">Kelas 4</option>
+                  <option value="5">Kelas 5</option>
+                  <option value="6">Kelas 6</option>
+                </select>
               </div>
             </div>
+
+            <!-- PATCH DYNAMIC FIELD MAPEL BARU -->
+            <div id="pktCustomMapelBlock" class="hidden p-3 bg-indigo-50/60 border border-indigo-100 rounded-xl transition-all">
+              <label class="block font-bold text-indigo-900 mb-1">Nama Mata Pelajaran Baru</label>
+              <input type="text" id="pktMapelKustom" placeholder="Tulis mapel kustom di sini..." class="w-full px-3 py-2 border border-slate-200 rounded-lg bg-white outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+
             <div class="grid grid-cols-2 gap-3">
               <div>
                 <label class="block font-bold text-slate-600 mb-1">Durasi Pengerjaan (Menit)</label>
@@ -359,7 +388,7 @@
         </div>
       </section>
 
-      <!-- LAYER 7: SCREEN ANALITIK HASIL UJIAN (DYNAMICALLY PATCHED) -->
+      <!-- LAYER 7: SCREEN ANALITIK HASIL UJIAN -->
       <section id="view-analitik" class="hidden space-y-6">
         <div class="flex justify-between items-center">
           <div>
@@ -512,7 +541,6 @@
 
     document.getElementById('gasUrlBadge').innerText = GAS_WEB_APP_URL.substring(0, 30) + "...";
 
-    // Global Instances untuk mempermudah mutasi runtime Chart.js
     let mapelChartInstance = null;
     let historyChartInstance = null;
 
@@ -544,6 +572,21 @@
       if (targetViewId === 'analitik') fetchAnalitikNilai();
     }
 
+    // PATCH VISUAL CONTROLLER: Manajemen Trigger Blok Mapel Kustom Manual
+    function handlePktMapelChange() {
+      const mapelSelect = document.getElementById('pktMapel');
+      const customBlock = document.getElementById('pktCustomMapelBlock');
+      const customInput = document.getElementById('pktMapelKustom');
+
+      if (mapelSelect.value === '__CUSTOM__') {
+        customBlock.classList.remove('hidden');
+        customInput.focus();
+      } else {
+        customBlock.classList.add('hidden');
+        customInput.value = "";
+      }
+    }
+
     // ==========================================
     // 2A. DASHBOARD ANALYTICS CONNECTIVITY ENGINE
     // ==========================================
@@ -555,20 +598,17 @@
         if (result.status === "SUCCESS") {
           const summary = result.data.summary;
           
-          // Render ke Widget Cards
           document.getElementById('dashCardSoal').innerText = summary.totalSoal.toLocaleString('id-ID');
           document.getElementById('dashCardMapel').innerText = summary.totalMapel;
           document.getElementById('dashCardPaket').innerText = summary.totalPaket;
           document.getElementById('dashCardGuru').innerText = summary.totalNilaiRows.toLocaleString('id-ID');
           
-          // Update Chart Per Mapel secara dinamis
           if (mapelChartInstance) {
             mapelChartInstance.data.labels = result.data.charts.mapel.labels;
             mapelChartInstance.data.datasets[0].data = result.data.charts.mapel.values;
             mapelChartInstance.update();
           }
           
-          // Update Chart History secara dinamis
           if (historyChartInstance) {
             historyChartInstance.data.labels = result.data.charts.history.labels;
             historyChartInstance.data.datasets[0].data = result.data.charts.history.values;
@@ -642,7 +682,6 @@
             `;
           }).join('');
           
-          // Update Visual Agregat Atas
           document.getElementById('anAvgScore').innerText = (totalScore / result.data.length).toFixed(1);
           document.getElementById('anMaxScore').innerText = maxScore;
           document.getElementById('anTotalSheets').innerText = result.data.length;
@@ -655,20 +694,27 @@
       }
     }
 
-    // 2D. EXAM PACKAGE CREATION SYNC ENGINE
+    // 2D. EXAM PACKAGE CREATION SYNC ENGINE (PATCHED FOREGROUND ROUTING SPA)
     async function createExamPackage() {
       const btn = document.getElementById('btnSimpanPaket');
       const pktNama = document.getElementById('pktNama');
-      const pktMapel = document.getElementById('pktMapel');
-      const pktKelas = document.getElementById('pktKelas');
+      const pktMapelSelect = document.getElementById('pktMapel');
+      const pktMapelKustom = document.getElementById('pktMapelKustom');
+      const pktKelasSelect = document.getElementById('pktKelas');
       const pktDurasi = document.getElementById('pktDurasi');
       const pktJumlahSoal = document.getElementById('pktJumlahSoal');
       const pktAcakSoal = document.getElementById('pktAcakSoal');
       const pktAcakOpsi = document.getElementById('pktAcakOpsi');
-      const pktTampilNilai = document.getElementById('pktTampilNilai');
+      const pktTappanNilai = document.getElementById('pktTampilNilai');
 
-      if (!pktNama.value.trim() || !pktMapel.value.trim() || !pktKelas.value.trim()) {
-        alert("Waduh! Nama Paket, Mapel, dan Kelas Target wajib diisi, bro!");
+      // Ekstrak string murni dari dropdown / field kustom manual
+      let targetMapelString = pktMapelSelect.value.trim();
+      if (targetMapelString === '__CUSTOM__') {
+        targetMapelString = pktMapelKustom.value.trim();
+      }
+
+      if (!pktNama.value.trim() || !targetMapelString || !pktKelasSelect.value.trim()) {
+        alert("Nama Paket, Mapel, dan Kelas Target wajib ditentukan, bro!");
         return;
       }
 
@@ -684,15 +730,15 @@
         action: "createPaketUjian",
         payload: {
           nama_paket: pktNama.value.trim(),
-          mapel: pktMapel.value.trim().toUpperCase(), 
-          kelas: pktKelas.value.trim(),
+          mapel: targetMapelString.toUpperCase(), 
+          kelas: pktKelasSelect.value.trim(), // Mengirim string angka murni "1"-"6"
           durasi: parseInt(pktDurasi.value) || 90,
           jumlah_soal: parseInt(pktJumlahSoal.value) || 10,
           waktu_mulai: mockWaktuMulai,
           waktu_selesai: mockWaktuSelesai,
           acak_soal: pktAcakSoal ? pktAcakSoal.checked : true,
           acak_opsi: pktAcakOpsi ? pktAcakOpsi.checked : true,
-          tampilkan_nilai: pktTampilNilai ? pktTampilNilai.checked : true,
+          tampilkan_nilai: pktTappanNilai ? pktTappanNilai.checked : true,
           status: "OPEN" 
         }
       };
@@ -709,10 +755,16 @@
 
         if (result.status === "SUCCESS") {
           alert("🎉 Mantap! " + (result.data.message || "Paket live berhasil disinkronkan ke Sheets & Firebase."));
+          
+          // PATCH RECOVERY: Kembalikan pandangan SPA ke dashboard utama tanpa memicu penyegaran halaman / 404
           switchView('dashboard');
+          
+          // Reset status form
           pktNama.value = "";
-          pktMapel.value = "";
-          pktKelas.value = "";
+          pktMapelSelect.value = "";
+          pktMapelKustom.value = "";
+          pktKelasSelect.value = "";
+          document.getElementById('pktCustomMapelBlock').classList.add('hidden');
         } else {
           alert("Ditolak Core GAS: " + result.error);
         }
@@ -900,7 +952,6 @@
 
     // 4. INITIALIZE CHARTS ON LOAD WITH INSTANCE STORAGE
     window.onload = function() {
-      // Inisialisasi awal Grafik Donut Mapel (Statis sementara sebelum fetch rampung)
       mapelChartInstance = new Chart(document.getElementById('chartMapel'), {
         type: 'doughnut',
         data: {
@@ -910,7 +961,6 @@
         options: { responsive: true, maintainAspectRatio: false }
       });
 
-      // Inisialisasi awal Grafik Line History
       historyChartInstance = new Chart(document.getElementById('chartHistory'), {
         type: 'line',
         data: {
@@ -920,7 +970,6 @@
         options: { responsive: true, maintainAspectRatio: false }
       });
 
-      // Triger fetch data awal dashboard
       fetchDashboardStats();
     };
 
