@@ -2,26 +2,20 @@
  * ==========================================================
  * FRONTEND SERVICE: auth-service.js
  * Peran     : Hashing password & Multi-Role Session Manager
- * Status    : CLEAN PATCH - No More Invisible Routes
+ * Status    : PRODUCTION UPGRADE - Student Dynamic Dropdown
  * ==========================================================
  */
 
 const AUTH_SERVICE = {
-  // URL Web App Google Apps Script Utama yang sudah terintegrasi analitik
   GAS_API_URL: "https://script.google.com/macros/s/AKfycbxE_OIRpPdaAR91bwa3fT8myIKytHZF8P0_PH5ikF-9fqjAJqoi4NaLpKdHtn7o9V5zEA/exec",
   SESSION_KEY: "cbt_session",
 
   /**
-   * Fungsi Login Multi-Role Terintegrasi Cloud Backend
-   * @param {string} username 
-   * @param {string} password 
+   * Fungsi Login Multi-Role Terintegrasi Cloud Backend (Admin/Guru/Staff)
    */
   async login(username, password) {
     try {
-      // 1. Hash password di client-side menggunakan Web Crypto API
       const passwordHash = await this._hashPassword(password);
-
-      // 2. Siapkan payload request sesuai standarisasi router GAS
       const payload = {
         action: "login",
         payload: {
@@ -30,7 +24,6 @@ const AUTH_SERVICE = {
         }
       };
 
-      // 3. Tembak ke Apps Script Engine
       const response = await fetch(this.GAS_API_URL, {
         method: "POST",
         mode: "cors",
@@ -41,7 +34,6 @@ const AUTH_SERVICE = {
       const result = await response.json();
 
       if (result.status === "SUCCESS") {
-        // 4. Simpan session di localStorage menggunakan key lowercase agar singkron dengan index.html
         localStorage.setItem(this.SESSION_KEY, JSON.stringify(result.data));
         return { success: true, user: result.data };
       } else {
@@ -54,8 +46,28 @@ const AUTH_SERVICE = {
   },
 
   /**
+   * NEW FEATURE: Log masuk instan siswa via seleksi paket dropdown lokal
+   * @param {string} namaSiswa 
+   * @param {string|number} kelasSiswa 
+   */
+  studentDirectLogin(namaSiswa, kelasSiswa) {
+    const cleanUsername = namaSiswa.toLowerCase().replace(/[^a-z0-9]/g, "");
+    const uniqueUid = `siswa-${cleanUsername}-${Date.now().toString().slice(-5)}`;
+    
+    const studentSession = {
+      uid: uniqueUid,
+      username: uniqueUid,
+      nama: namaSiswa,
+      kelas: kelasSiswa,
+      role: "SISWA"
+    };
+
+    localStorage.setItem(this.SESSION_KEY, JSON.stringify(studentSession));
+    return studentSession;
+  },
+
+  /**
    * Cek status session di halaman dashboard/exam dengan proteksi ketat
-   * @param {Array} allowedRoles - Role yang diijinkan masuk (e.g. ['ADMIN', 'GURU'] atau ['SISWA'])
    */
   checkSession(allowedRoles = []) {
     const sessionStr = localStorage.getItem(this.SESSION_KEY);
@@ -66,19 +78,15 @@ const AUTH_SERVICE = {
 
     const session = JSON.parse(sessionStr);
     
-    // Validasi format objek session internal
     if (!session || !session.role) {
       this.logout();
       return null;
     }
     
-    // Validasi pemisahan role management (Mencegah salah masuk kamar halaman)
     if (allowedRoles.length > 0 && !allowedRoles.includes(session.role)) {
       alert(`Akses Ditolak! Akun Anda (${session.role}) tidak memiliki hak akses ke halaman ini.`);
-      
-      // Smart Router Direction - Hapus seluruh referensi siswa-exam-list.html
       if (session.role === 'SISWA') {
-        window.location.href = "siswa-exam.html"; // Dialihkan langsung ke halaman exam existing
+        window.location.href = "login.html";
       } else {
         window.location.href = "index.html";
       }
@@ -97,7 +105,7 @@ const AUTH_SERVICE = {
   },
 
   /**
-   * Helper SHA-256 Hashing menggunakan Web Crypto API (Native Browser)
+   * Helper SHA-256 Hashing menggunakan Web Crypto API
    */
   async _hashPassword(password) {
     const encoder = new TextEncoder();
