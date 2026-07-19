@@ -7,7 +7,6 @@
     <!-- Bootstrap 5 CSS CDN -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     
-    <!-- Bagian CSS (Pindahan dari style.html) -->
     <style>
         /* Kustomisasi scrollbar untuk area preview tabel */
         .table-responsive::-webkit-scrollbar {
@@ -43,26 +42,71 @@
         .card {
             transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
+
+        /* Sidebar Custom Styling */
+        .sidebar-menu .list-group-item.active {
+            background-color: #0d6efd;
+            border-color: #0d6efd;
+        }
     </style>
 </head>
 <body class="bg-light">
 
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
-        <div class="container">
-            <a class="navbar-brand fw-bold" href="#">EXAM-GAS-B5</a>
-            <span class="navbar-text text-white-50 d-none d-sm-inline">
+    <!-- Navbar Global -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm sticky-top">
+        <div class="container-fluid px-4">
+            <a class="navbar-brand fw-bold" href="index.html">EXAM-GAS-B5</a>
+            <span class="navbar-text text-white-50 d-none d-sm-inline ms-2">
                 Sistem Impor Bank Soal Massal
             </span>
+            <div class="ms-auto text-white small">
+                Role: <span class="badge bg-danger">ADMIN / GURU</span>
+            </div>
         </div>
     </nav>
 
-    <!-- Main Content Container -->
-    <div class="container my-5">
+    <!-- Main Layout Container: Grid Menu Navigasi & Konten -->
+    <div class="container-fluid px-4 my-4">
         <div class="row">
-            <div class="col-12">
+            
+            <!-- KIRI: MENU NAVIGASI UTAMA (TAB/FILE ACCESSIBILITY) -->
+            <div class="col-lg-3 col-md-4 mb-4">
+                <div class="card shadow-sm border-0 rounded-3 sticky-top" style="top: 70px; z-index: 1;">
+                    <div class="card-header bg-white py-3">
+                        <h6 class="fw-bold m-0 text-secondary text-uppercase tracking-wider" style="font-size: 0.8rem;">Navigasi Platform</h6>
+                    </div>
+                    <div class="card-body p-2 sidebar-menu">
+                        <div class="list-group list-group-flush gap-1">
+                            <a href="index.html" class="list-group-item list-group-item-action rounded-3 border-0 py-2.5 active fw-bold">
+                                📥 Bulk Import Engine
+                            </a>
+                            <a href="dashboard.html" class="list-group-item list-group-item-action rounded-3 border-0 py-2.5">
+                                📊 Statistik Dashboard
+                            </a>
+                            <a href="bank-soal.html" class="list-group-item list-group-item-action rounded-3 border-0 py-2.5">
+                                📚 Kelola Bank Soal
+                            </a>
+                            <a href="analitik.html" class="list-group-item list-group-item-action rounded-3 border-0 py-2.5">
+                                📈 Analitik Hasil Kelas
+                            </a>
+                            <a href="bank-media.html" class="list-group-item list-group-item-action rounded-3 border-0 py-2.5">
+                                🖼️ Pustaka Bank Media
+                            </a>
+                            <a href="manajemen-user.html" class="list-group-item list-group-item-action rounded-3 border-0 py-2.5">
+                                👥 Manajemen Pengguna
+                            </a>
+                            <a href="pengaturan.html" class="list-group-item list-group-item-action rounded-3 border-0 py-2.5">
+                                ⚙️ Pengaturan Sekolah
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- KANAN: PANEL WORKSPACE FITUR AKTIF -->
+            <div class="col-lg-9 col-md-8">
                 
-                <!-- Card Panel Utama -->
+                <!-- Card Panel Utama (Bulk Import) -->
                 <div class="card shadow-sm border-0 rounded-3 mb-4">
                     <div class="card-header bg-white py-3 border-bottom-0">
                         <h5 class="card-title fw-bold text-dark m-0">Bulk Import Engine</h5>
@@ -130,9 +174,8 @@
     <!-- SheetJS (XLSX Core Engine) CDN -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
-    <!-- Bagian Logic JavaScript (Pindahan dari script.html) -->
+    <!-- Bagian Logic JavaScript -->
     <script>
-        // Global state untuk menyimpan data soal yang valid dan siap kirim
         let parsedItems = [];
 
         // DOM Elements
@@ -145,18 +188,11 @@
         const previewTableBody = document.getElementById('previewTableBody');
         const totalRowsBadge = document.getElementById('totalRowsBadge');
 
-        // PENTING: Ganti dengan URL Web App Google Apps Script lo yang didapat setelah Deploy
         const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxE_OIRpPdaAR91bwa3fT8myIKytHZF8P0_PH5ikF-9fqjAJqoi4NaLpKdHtn7o9V5zEA/exec';
 
-        // Event Listener: Mendeteksi unggahan file Excel
         fileInput.addEventListener('change', handleFileSelect);
-
-        // Event Listener: Tombol Kirim Data Massal
         btnSyncData.addEventListener('click', submitBulkData);
 
-        /**
-         * Handler saat file Excel dipilih oleh pengguna
-         */
         function handleFileSelect(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -169,18 +205,14 @@
                     const data = new Uint8Array(e.target.result);
                     const workbook = XLSX.read(data, { type: 'array' });
                     
-                    // Ambil sheet pertama di dalam file Excel
                     const firstSheetName = workbook.SheetNames[0];
                     const worksheet = workbook.Sheets[firstSheetName];
-                    
-                    // Konversi sheet menjadi Array of Objects (Baris 1 otomatis jadi properti/header)
                     const jsonData = XLSX.utils.sheet_to_json(worksheet);
                     
                     if (jsonData.length === 0) {
                         throw new Error("File Excel kosong atau tidak mengikuti format header yang ditentukan.");
                     }
 
-                    // Jalankan proses validasi dan mapping data
                     processAndValidateData(jsonData);
 
                 } catch (error) {
@@ -191,18 +223,14 @@
             reader.readAsArrayBuffer(file);
         }
 
-        /**
-         * Memvalidasi aturan bisnis skema soal sebelum di-render ke UI
-         */
         function processAndValidateData(data) {
             parsedItems = [];
             previewTableBody.innerHTML = '';
 
             for (let i = 0; i < data.length; i++) {
                 const row = data[i];
-                const rowNum = i + 2; // Baris Excel asli (Header = baris 1)
+                const rowNum = i + 2;
 
-                // Ambil data dan bersihkan spasi
                 const mataPelajaran = row['Mata Pelajaran'] ? String(row['Mata Pelajaran']).trim() : '';
                 const kelas = row['Kelas'] ? String(row['Kelas']).trim() : '';
                 const tipeSoal = row['Tipe Soal'] ? String(row['Tipe Soal']).trim() : '';
@@ -214,7 +242,6 @@
                 const opsiE = row['Oply E'] || row['Opsi E'] ? String(row['Oply E'] || row['Opsi E']).trim() : '';
                 const kunciJawaban = row['Kunci Jawaban'] ? String(row['Kunci Jawaban']).trim().toUpperCase() : '';
 
-                // Validasi Standard Required
                 if (!tipeSoal || (tipeSoal !== 'PG' && tipeSoal !== 'Essay')) {
                     throw new Error(`Baris ${rowNum}: Kolom 'Tipe Soal' wajib diisi dengan 'PG' atau 'Essay'.`);
                 }
@@ -222,7 +249,6 @@
                     throw new Error(`Baris ${rowNum}: Kolom 'Pertanyaan' tidak boleh kosong.`);
                 }
 
-                // Validasi Khusus Pilihan Ganda (PG)
                 if (tipeSoal === 'PG') {
                     if (!opsiA || !opsiB || !opsiC || !opsiD) {
                         throw new Error(`Baris ${rowNum}: Soal PG minimal wajib mengisi Opsi A sampai Opsi D.`);
@@ -232,7 +258,6 @@
                     }
                 }
 
-                // Simpan objek data bersih ke dalam state global
                 const itemObject = {
                     mata_pelajaran: mataPelajaran,
                     kelas: kelas,
@@ -248,7 +273,6 @@
                 
                 parsedItems.push(itemObject);
 
-                // Render Baris ke Preview Tabel UI
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td>${i + 1}</td>
@@ -266,33 +290,24 @@
                 previewTableBody.appendChild(tr);
             }
 
-            // Aktifkan UI Preview dan Tombol Kirim jika validasi berhasil total
             totalRowsBadge.innerText = `${parsedItems.length} baris terdeteksi`;
             previewCard.classList.remove('d-none');
             btnSyncData.removeAttribute('disabled');
             showAlert('success', `Validasi Client Berhasil! ${parsedItems.length} soal siap disinkronisasikan.`);
         }
 
-        /**
-         * Mengirim data massal ke Google Apps Script Web App Endpoint via Fetch API
-         */
         function submitBulkData() {
             if (parsedItems.length === 0) return;
-            if (GAS_WEB_APP_URL === 'TULIS_URL_WEB_APP_GAS_ANDA_DISINI') {
-                showAlert('danger', 'Gagal mengirim! Anda belum mengonfigurasi variabel GAS_WEB_APP_URL di file ini.');
-                return;
-            }
 
-            // Set UI Loading State
             setLoadingState(true);
             showAlert('info', 'Sedang melakukan Bulk Insert ke database Google Sheets... Mohon tunggu.');
 
-            // Bungkus payload sesuai cetak biru JSON
+            // Format payload dibungkus dengan action untuk controller.gs
             const payload = {
-                items: parsedItems
+                action: "importSoalBatch",
+                payload: parsedItems
             };
 
-            // Jalankan request ke GAS via metode POST
             fetch(GAS_WEB_APP_URL, {
                 method: 'POST',
                 mode: 'cors',
@@ -306,12 +321,12 @@
                 return response.json();
             })
             .then(result => {
-                if (result.success) {
-                    showAlert('success', `🎉 Mantap! ${result.data.inserted} data soal berhasil disuntikkan ke Google Sheets.`);
+                if (result.status === "SUCCESS") {
+                    showAlert('success', `🎉 🎉 Mantap! ${result.data.message || 'Data soal berhasil disuntikkan ke Google Sheets.'}`);
                     resetPreview();
                     fileInput.value = '';
                 } else {
-                    showAlert('danger', 'Gagal diproses Server: ' + result.message);
+                    showAlert('danger', 'Gagal diproses Server: ' + result.error);
                 }
             })
             .catch(error => {
@@ -321,8 +336,6 @@
                 setLoadingState(false);
             });
         }
-
-        // --- Helper Functions ---
 
         function setLoadingState(isLoading) {
             if (isLoading) {
