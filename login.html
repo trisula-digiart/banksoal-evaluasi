@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login | CBT-SAAS-GAS-GH</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 flex items-center justify-center min-h-screen">
+
+  <div class="w-full max-w-md p-8 bg-white rounded-2xl shadow-xl border border-slate-100">
+    <!-- Header Logo / Judul -->
+    <div class="text-center mb-8">
+      <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-indigo-600 text-white text-2xl font-bold mb-3">
+        CBT
+      </div>
+      <h2 class="text-2xl font-bold text-slate-800">Selamat Datang</h2>
+      <p class="text-slate-500 text-sm mt-1">Silakan login dengan akun sekolah lu</p>
+    </div>
+
+    <!-- Alert Error Banner -->
+    <div id="errorAlert" class="hidden mb-4 p-4 text-sm text-red-700 bg-red-50 rounded-lg border border-red-100" role="alert">
+      <span class="font-medium">Waduh!</span> <span id="errorText"></span>
+    </div>
+
+    <!-- Form Login -->
+    <form id="loginForm" class="space-y-5">
+      <div>
+        <label class="block mb-2 text-sm font-medium text-slate-700">Username</label>
+        <input type="text" id="username" required autocomplete="username"
+          class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-slate-800 transition-all">
+      </div>
+
+      <div>
+        <label class="block mb-2 text-sm font-medium text-slate-700">Password</label>
+        <input type="password" id="password" required autocomplete="current-password"
+          class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-slate-800 transition-all">
+      </div>
+
+      <button type="submit" id="btnSubmit"
+        class="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-xl transition-colors flex items-center justify-center gap-2 shadow-lg shadow-indigo-100">
+        <span>Masuk Aplikasi</span>
+      </button>
+    </form>
+  </div>
+
+  <!-- Integrasi Service Logic -->
+  <script src="auth-service.js"></script>
+  <script>
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const userEl = document.getElementById('username');
+      const passEl = document.getElementById('password');
+      const btnEl = document.getElementById('btnSubmit');
+      const alertEl = document.getElementById('errorAlert');
+      const alertText = document.getElementById('errorText');
+
+      // Set Loading State
+      btnEl.disabled = true;
+      btnEl.firstElementChild.innerText = "Memproses...";
+      alertEl.classList.add('hidden');
+
+      const res = await AUTH_SERVICE.login(userEl.value, passEl.value);
+
+      if (res.success) {
+        // Arahkan ke dashboard sesuai role masing-masing
+        if (res.user.role === 'ADMIN' || res.user.role === 'GURU' || res.user.role === 'OPERATOR') {
+          window.location.href = 'dashboard.html';
+        } else {
+          window.location.href = 'siswa-exam-list.html';
+        }
+      } else {
+        // Tampilkan error
+        alertText.innerText = res.message;
+        alertEl.classList.remove('hidden');
+        btnEl.disabled = false;
+        btnEl.firstElementChild.innerText = "Masuk Aplikasi";
+      }
+    });
+  </script>
+</body>
+</html>
