@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Live Exam | CBT-SAAS-GAS-GH</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Firebase App & Realtime Database SDK (v9 Compat Mode biar gampang di-load via CDN) -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+</head>
+<body class="bg-slate-50 font-sans select-none">
+
+  <!-- TOP HEADER (Timer & Ujian Info) -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-20 px-6 py-4 flex justify-between items-center shadow-sm">
+    <div>
+      <h1 id="examTitle" class="text-lg font-bold text-slate-800">Memuat info ujian...</h1>
+      <p class="text-xs text-slate-500 mt-0.5">Siswa: <span id="siswaName" class="font-medium text-indigo-600">-</span></p>
+    </div>
+    <div class="flex items-center gap-4">
+      <div class="bg-red-50 border border-red-100 px-4 py-2 rounded-xl flex items-center gap-2">
+        <span class="text-red-500 animate-pulse text-lg">⏱️</span>
+        <span id="countdownTimer" class="font-mono text-xl font-bold text-red-600">00:00:00</span>
+      </div>
+      <button onclick="confirmAkhiriUjian()" class="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-xl text-sm transition-colors shadow-sm">
+        Akhiri Ujian
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN WORKSPACE -->
+  <div class="max-w-[1400px] mx-auto p-6 grid grid-cols-1 lg:grid-cols-4 gap-6">
+    
+    <!-- KIRI: NAVIGASI NOMOR SOAL -->
+    <aside class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 lg:col-span-1 h-fit sticky top-24">
+      <h3 class="text-sm font-bold text-slate-700 uppercase tracking-wider mb-4 border-b border-slate-100 pb-2">Navigasi Soal</h3>
+      
+      <!-- Grid Container Nomor Soal -->
+      <div id="nomorGrid" class="grid grid-cols-5 gap-2.5 mb-6">
+        <!-- Generasi dinamis via JS -->
+      </div>
+
+      <!-- Keterangan Warna Status -->
+      <div class="border-t border-slate-100 pt-4 space-y-2 text-xs text-slate-500">
+        <div class="flex items-center gap-2">
+          <span class="w-3 h-3 bg-emerald-500 rounded-md"></span> <span>Sudah Dijawab</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="w-3 h-3 bg-amber-500 rounded-md"></span> <span>Ragu-Ragu</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="w-3 h-3 bg-indigo-600 rounded-md"></span> <span>Sedang Dibuka</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="w-3 h-3 bg-slate-200 rounded-md"></span> <span>Belum Dijawab</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- KANAN: KONTEN SOAL & RADIO OPSI -->
+    <main class="lg:col-span-3 space-y-5">
+      <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 min-h-[400px] flex flex-col justify-between">
+        
+        <div>
+          <!-- Badge Info Nomor Aktif -->
+          <div class="inline-block px-3 py-1 bg-slate-100 text-slate-700 font-bold rounded-lg text-xs mb-4">
+            SOAL NOMOR <span id="currentNumberBadge">1</span>
+          </div>
+
+          <!-- Teks Pertanyaan -->
+          <div id="questionText" class="text-base text-slate-800 font-medium leading-relaxed mb-6">
+            Sedang memuat pertanyaan...
+          </div>
+
+          <!-- Opsi Jawaban Pilihan Ganda -->
+          <div id="optionsContainer" class="space-y-3">
+            <!-- Generasi dinamis via JS -->
+          </div>
+        </div>
+
+        <!-- Tombol Aksi Navigasi Bawah -->
+        <div class="flex justify-between items-center border-t border-slate-100 pt-6 mt-8">
+          <button id="btnPrev" onclick="navigateQuestion(-1)" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-xl text-sm transition-colors disabled:opacity-50">
+            ⬅️ Sebelumnya
+          </button>
+          
+          <button id="btnRagu" onclick="toggleRaguRagu()" class="px-5 py-2.5 bg-amber-50 border border-amber-200 text-amber-700 font-medium rounded-xl text-sm transition-colors flex items-center gap-1.5">
+            <input type="checkbox" id="chkRagu" class="rounded text-amber-600 focus:ring-amber-500 pointer-events-none"> Ragu-Ragu
+          </button>
+          
+          <button id="btnNext" onclick="navigateQuestion(1)" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-xl text-sm transition-colors">
+            Selanjutnya ➡️
+          </button>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script src="auth-service.js"></script>
+  <script>
+    // 1. Ambil Parameter & Proteksi Session Siswa
+    const session = AUTH_SERVICE.checkSession(['SISWA']);
+    const urlParams = new URLSearchParams(window.location.search);
+    const idUjian = urlParams.get('id_ujian') || "EXAM-DEMO";
+    
+    if (session) {
+      document.getElementById('siswaName').innerText = session.nama;
+    }
+
+    // Konfigurasi Kredensial Firebase Operasional Live Exam
+    // (Bisa disamakan dengan URL di config.gs agar sinkron)
+    const firebaseConfig = {
+      databaseURL: "https://cbt-saas-gas-gh-default-rtdb.firebaseio.com/"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // App State Global Frontend
+    let listSoal = {};
+    let jawabanTerpilih = {};
+    let currentIndex = 1;
+    let totalSoal = 0;
+    let timerInterval = null;
+    let sisaWaktuDetik = 0;
+
+    // 2. Fetch Initial State & Jalankan Engine Real-Time Sync
+    async function initLiveExamEngine() {
+      // Ambil data paket ujian dari path /active_packages/$id_ujian
+      db.ref(`active_packages/${idUjian}`).once('value', async (snapshot) => {
+        const dataPaket = snapshot.val();
+        if (!dataPaket) {
+          alert("Akses Ujian Ditolak! Paket ujian tidak ditemukan atau belum aktif.");
+          window.location.href = "siswa-exam-list.html";
+          return;
+        }
+
+        document.getElementById('examTitle').innerText = dataPaket.konfigurasi.nama_paket;
+        listSoal = dataPaket.list_soal;
+        totalSoal = Object.keys(listSoal).length;
+
+        // Cek dulu ke path /live_exams/ apakah siswa ini udah punya session berjalan (Anti-Refresh Check)
+        db.ref(`live_exams/${idUjian}/${session.uid}`).once('value', (liveSnapshot) => {
+          const liveData = liveSnapshot.val();
+
+          if (liveData) {
+            // Restore state jawaban dan waktu tersisa dari Firebase
+            jawabanTerpilih = liveData.jawaban_terpilih || {};
+            sisaWaktuDetik = liveData.sisa_waktu_detik;
+            
+            if (liveData.status_pengerjaan === "SUBMITTED") {
+              alert("Ujian ini sudah selesai dikerjakan, bro!");
+              window.location.href = "siswa-exam-list.html";
+              return;
+            }
+          } else {
+            // Jika benar-benar baru pertama kali klik start, buat state awal di Firebase
+            sisaWaktuDetik = dataPaket.konfigurasi.durasi * 60;
+            db.ref(`live_exams/${idUjian}/${session.uid}`).set({
+              status_pengerjaan: "PROGRESS",
+              sisa_waktu_detik: sisaWaktuDetik,
+              jawaban_terpilih: {}
+            });
+          }
+
+          // Render komponen layout dan nyalakan timer countdown per detik
+          buildNomorGrid();
+          showQuestion(currentIndex);
+          startTimerEngine();
+        });
+      });
+    }
+
+    // 3. Engine Timer: Loop sync sisa waktu per detik ke Firebase
+    function startTimerEngine() {
+      timerInterval = setInterval(() => {
+        if (sisaWaktuDetik <= 0) {
+          clearInterval(timerInterval);
+          alert("Waktu habis! Jawaban kamu otomatis dikirim ke server.");
+          autoSubmitUjian();
+          return;
+        }
+
+        sisaWaktuDetik--;
+        
+        // Update Tampilan Jam di Header
+        const jam = Math.floor(sisaWaktuDetik / 3600).toString().padStart(2, '0');
+        const menit = Math.floor((sisaWaktuDetik % 3600) / 60).toString().padStart(2, '0');
+        const detik = (sisaWaktuDetik % 60).toString().padStart(2, '0');
+        document.getElementById('countdownTimer').innerText = `${jam}:${menit}:${detik}`;
+
+        // Sync sisa waktu ke Firebase setiap 5 detik sekali (Optimasi trafik WebSocket)
+        if (sisaWaktuDetik % 5 === 0) {
+          db.ref(`live_exams/${idUjian}/${session.uid}`).update({
+            sisa_waktu_detik: sisaWaktuDetik
+          });
+        }
+      }, 1000);
+    }
+
+    // 4. Render Grid Navigasi Nomor Soal Dinamis
+    function buildNomorGrid() {
+      const container = document.getElementById('nomorGrid');
+      container.innerHTML = "";
+
+      for (let i = 1; i <= totalSoal; i++) {
+        const itemState = jawabanTerpilih[i];
+        let bgClass = "bg-slate-200 text-slate-700 hover:bg-slate-300"; // Default belum diisi
+
+        if (itemState) {
+          if (itemState.status_ragu) {
+            bgClass = "bg-amber-500 text-white"; // Ragu-ragu
+          } else if (itemState.jawaban !== "") {
+            bgClass = "bg-emerald-500 text-white"; // Sudah diisi
+          }
+        }
+
+        if (i === currentIndex) {
+          bgClass = "bg-indigo-600 text-white ring-4 ring-indigo-100"; // Sedang dibuka
+        }
+
+        container.innerHTML += `
+          <button id="numBtn-${i}" onclick="jumpToQuestion(${i})" class="w-full h-11 font-bold rounded-xl text-center text-sm transition-all shadow-sm ${bgClass}">
+            ${i}
+          </button>
+        `;
+      }
+    }
+
+    // 5. Render Konten Soal Aktif
+    function showQuestion(index) {
+      currentIndex = index;
+      const soal = listSoal[index];
+      
+      document.getElementById('currentNumberBadge').innerText = index;
+      document.getElementById('questionText').innerText = soal.soal;
+
+      // Render Opsi Radio A, B, C, D
+      const containerOpsi = document.getElementById('optionsContainer');
+      const currentAns = jawabanTerpilih[index] ? jawabanTerpilih[index].jawaban : "";
+      const isRagu = jawabanTerpilih[index] ? jawabanTerpilih[index].status_ragu : false;
+
+      // Set Checkbox Status Ragu di bottom bar
+      document.getElementById('chkRagu').checked = isRagu;
+
+      const keys = ['a', 'b', 'c', 'd'];
+      containerOpsi.innerHTML = keys.map(key => {
+        const isChecked = currentAns === key.toUpperCase();
+        return `
+          <label onclick="selectJawaban('${key.toUpperCase()}')" class="flex items-center gap-4 p-4 bg-white border ${isChecked ? 'border-indigo-500 bg-indigo-50/20' : 'border-slate-200 hover:bg-slate-50'} rounded-xl cursor-pointer transition-all">
+            <input type="radio" name="opsiSoal" value="${key.toUpperCase()}" ${isChecked ? 'checked' : ''} class="w-4 h-4 text-indigo-600 border-slate-300 focus:ring-indigo-500">
+            <span class="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-xs font-bold text-slate-500 uppercase">${key}</span>
+            <span class="text-slate-700 text-sm">${soal[key]}</span>
+          </label>
+        `;
+      }).join('');
+
+      // Atur status disabled tombol navigasi
+      document.getElementById('btnPrev').disabled = (index === 1);
+      document.getElementById('btnNext').innerText = (index === totalSoal) ? "Selesai 🏁" : "Selanjutnya ➡️";
+      
+      // Re-render highlight warna grid nomor biar update
+      buildNomorGrid();
+    }
+
+    // 6. Aksi Memilih Jawaban (Sync Instant via Firebase .update())
+    function selectJawaban(hurufOpsi) {
+      if (!jawabanTerpilih[currentIndex]) {
+        jawabanTerpilih[currentIndex] = { jawaban: "", status_ragu: false };
+      }
+
+      jawabanTerpilih[currentIndex].jawaban = hurufOpsi;
+
+      // Push state ke Firebase Live DB
+      db.ref(`live_exams/${idUjian}/${session.uid}/jawaban_terpilih/${currentIndex}`).update({
+        jawaban: hurufOpsi
+      });
+
+      showQuestion(currentIndex);
+    }
+
+    // 7. Toggle Fitur Ragu-Ragu
+    function toggleRaguRagu() {
+      if (!jawabanTerpilih[currentIndex]) {
+        jawabanTerpilih[currentIndex] = { jawaban: "", status_ragu: false };
+      }
+
+      const stateSekarang = !jawabanTerpilih[currentIndex].status_ragu;
+      jawabanTerpilih[currentIndex].status_ragu = stateSekarang;
+
+      db.ref(`live_exams/${idUjian}/${session.uid}/jawaban_terpilih/${currentIndex}`).update({
+        status_ragu: stateSekarang
+      });
+
+      showQuestion(currentIndex);
+    }
+
+    // Navigasi Tombol
+    function navigateQuestion(step) {
+      const target = currentIndex + step;
+      if (target >= 1 && target <= totalSoal) {
+        showQuestion(target);
+      } else if (target > totalSoal) {
+        confirmAkhiriUjian();
+      }
+    }
+
+    function jumpToQuestion(num) {
+      showQuestion(num);
+    }
+
+    function confirmAkhiriUjian() {
+      const konfirmasi = confirm("Apakah kamu yakin ingin mengakhiri ujian ini, bro? Pastikan semua nomor sudah terisi!");
+      if (konfirmasi) {
+        autoSubmitUjian();
+      }
+    }
+
+    // 8. Kirim Status Selesai ke Firebase & Alihkan ke Modul 08 Kalkulator Nilai
+    function autoSubmitUjian() {
+      clearInterval(timerInterval);
+      db.ref(`live_exams/${idUjian}/${session.uid}`).update({
+        status_pengerjaan: "SUBMITTED"
+      }).then(() => {
+        // Alihkan halaman ke Modul 08 untuk pemrosesan nilai final ke Sheets
+        window.location.href = `siswa-finish.html?id_ujian=${idUjian}`;
+      });
+    }
+
+    window.onload = initLiveExamEngine;
+  </script>
+</body>
+</html>
