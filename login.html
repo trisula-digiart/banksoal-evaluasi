@@ -200,7 +200,7 @@
       }
     }
 
-    // ARSITEKTUR v19.0: CASE-INSENSITIVE DYNAMIC PROPERTY EXTRACTOR
+    // ARSITEKTUR v20.0: DYNAMIC INSENSITIVE MAPPING WITH FIXED SYNTAX
     function filterMapelDropdown() {
       const kelasSelect = document.getElementById('siswaKelas');
       const kelasTerpilih = kelasSelect.value ? String(kelasSelect.value).trim() : "";
@@ -219,17 +219,16 @@
       Object.keys(masterPaketAktif).forEach(idPaket => {
         const paket = masterPaketAktif[idPaket];
         if (paket) {
-          
           let kelasDariDb = "";
           
-          // LANGKAH PANDAI 1: SCAN SEMUA KUNCI PADA LEVEL ROOT OBJEK (CASE-INSENSITIVE)
+          // Membaca kunci properti kelas secara case-insensitive pada root objek
           Object.keys(paket).forEach(key => {
             if (key.toLowerCase() === 'kelas') {
               kelasDariDb = String(paket[key]).trim();
             }
           });
 
-          // LANGKAH PANDAI 2: JIKA TIDAK KETEMU, SCAN LEVEL SUB-KONFIGURASI PADA OBJEK
+          // Membaca kunci properti kelas jika tersimpan di dalam folder konfigurasi
           if (!kelasDariDb && paket.konfigurasi) {
             Object.keys(paket.konfigurasi).forEach(key => {
               if (key.toLowerCase() === 'kelas') {
@@ -238,20 +237,15 @@
             });
           }
 
-          // AMBIL HANYA KARAKTER ANGKA DARI VALUE DATABASE YANG DITEMUKAN
           const dbMatch = kelasDariDb.match(/\d+/);
           const angkaKelasDb = dbMatch ? dbMatch[0] : "";
 
-          console.log(`[VERIFIKASI v19.0] ID Ujian: ${idPaket} | Ditemukan di DB: "${kelasDariDb}" -> Angka Murni: "${angkaKelasDb}" | Target Cocok Siswa: "${kelasTerpilih}"`);
+          console.log(`[VERIFIKASI] ID: ${idPaket} | Angka DB: "${angkaKelasDb}" | Target Siswa: "${kelasTerpilih}"`);
 
-          // VALIDASI JUJUR MUTLAK BERBASIS ANGKA
           if (angkaKelasDb !== "" && angkaKelasDb === kelasTerpilih) {
-            
-            // Ekstrak nama mapel & paket dengan case-insensitive mapping
             let namaMapelMurni = "";
             let namaPaketMurni = "";
 
-            // Cari nama mapel dinamis
             const targetObj = paket.konfigurasi || paket;
             Object.keys(targetObj).forEach(k => {
               const lowerKey = k.toLowerCase();
@@ -287,11 +281,12 @@
       const idUjian = document.getElementById('siswaMapel').value;
 
       if (typeof AUTH_SERVICE !== 'undefined') {
-        AUTH_SERVICE.studentDirectLogin(nama, kelas);[cite: 1]
+        AUTH_SERVICE.studentDirectLogin(nama, kelas); //[cite: 1]
       }
       window.location.href = `siswa-exam.html?id_ujian=${idUjian}`;
     });
 
+    // FIX TOKENS: Membaca properti AUTH_SERVICE secara valid tanpa syntax error
     document.getElementById('staffForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const userEl = document.getElementById('username');
@@ -310,7 +305,8 @@
           throw new Error("Sistem otentikasi belum siap di browser.");
         }
 
-        const res = await AUTH_SERVICE.login(userEl.value, passEl.value);[cite: 1]
+        // PERBAIKAN SINTAKSIS UTAMA: Menghapus token ':' ilegal pengganti tanda titik
+        const res = await AUTH_SERVICE.login(userEl.value, passEl.value); //[cite: 1]
 
         if (res.success) {
           window.location.href = 'index.html';
