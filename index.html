@@ -72,13 +72,19 @@
       <button onclick="switchView('pengaturan')" id="nav-pengaturan" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-xl transition-all text-slate-500 hover:text-slate-900 hover:bg-slate-50">
         <span class="text-lg">⚙️</span> Pengaturan Sistem
       </button>
+
+      <div class="pt-4 border-t border-slate-100">
+        <button onclick="executeLogout()" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-xl transition-all text-red-500 hover:text-red-700 hover:bg-red-50">
+          <span class="text-lg">🚪</span> Keluar Aplikasi
+        </button>
+      </div>
     </nav>
 
     <!-- Info User Profile Kiri Bawah -->
     <div class="p-4 border-t border-slate-100 flex items-center gap-3 bg-slate-50/50">
-      <div class="w-9 h-9 bg-slate-200 rounded-full flex items-center justify-center font-bold text-slate-600 text-xs">AD</div>
+      <div class="w-9 h-9 bg-slate-200 rounded-full flex items-center justify-center font-bold text-slate-600 text-xs" id="userAvatar">U</div>
       <div class="overflow-hidden">
-        <p class="text-xs font-bold text-slate-700 truncate">Admin Sekolah</p>
+        <p class="text-xs font-bold text-slate-700 truncate" id="profileNameDisplay">Loading...</p>
         <p class="text-[10px] font-medium text-emerald-600 flex items-center gap-1">● Online</p>
       </div>
     </div>
@@ -144,7 +150,7 @@
           </div>
         </div>
 
-        <!-- Charts Workspace (Mockup 1) -->
+        <!-- Charts Workspace -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm lg:col-span-1">
             <h4 class="text-xs font-bold text-slate-700 uppercase mb-4 tracking-wider">Statistik Soal Per Mapel</h4>
@@ -194,7 +200,7 @@
         </div>
       </section>
 
-      <!-- LAYER 3: SCREEN TAMBAH SOAL MANUAL (Mockup 3) -->
+      <!-- LAYER 3: SCREEN TAMBAH SOAL MANUAL -->
       <section id="view-tambahSoal" class="hidden space-y-6">
         <div>
           <h2 class="text-xl font-bold text-slate-800">Tambah / Edit Soal Satuan</h2>
@@ -257,7 +263,7 @@
         </div>
       </section>
 
-      <!-- LAYER 4: SCREEN BULK IMPORT EXCEL (Mockup 4) -->
+      <!-- LAYER 4: SCREEN BULK IMPORT EXCEL -->
       <section id="view-importExcel" class="hidden space-y-6">
         <div>
           <h2 class="text-xl font-bold text-slate-800">Bulk Import Engine</h2>
@@ -282,7 +288,7 @@
         </div>
       </section>
 
-      <!-- LAYER 5: SCREEN BUAT PAKET UJIAN BARU (Mockup 5) -->
+      <!-- LAYER 5: SCREEN BUAT PAKET UJIAN BARU -->
       <section id="view-paketUjian" class="hidden space-y-6">
         <div>
           <h2 class="text-xl font-bold text-slate-800">Paket Ujian Baru</h2>
@@ -329,7 +335,7 @@
         </div>
       </section>
 
-      <!-- LAYER 6: SCREEN PREVIEW LIVE EXAM SISWA (Mockup 6) -->
+      <!-- LAYER 6: SCREEN PREVIEW LIVE EXAM SISWA -->
       <section id="view-previewUjian" class="hidden space-y-6 select-none">
         <div class="bg-slate-900 text-white p-4 rounded-xl flex justify-between items-center">
           <div>
@@ -361,7 +367,7 @@
         </div>
       </section>
 
-      <!-- LAYER 7: SCREEN ANALITIK HASIL UJIAN (Mockup 7) -->
+      <!-- LAYER 7: SCREEN ANALITIK HASIL UJIAN -->
       <section id="view-analitik" class="hidden space-y-6">
         <div>
           <h2 class="text-xl font-bold text-slate-800">Analitik Hasil Evaluasi</h2>
@@ -383,7 +389,7 @@
         </div>
       </section>
 
-      <!-- LAYER 8: SCREEN GALERI BANK MEDIA (Mockup 8) -->
+      <!-- LAYER 8: SCREEN GALERI BANK MEDIA -->
       <section id="view-bankMedia" class="hidden space-y-6">
         <div class="flex justify-between items-center">
           <div>
@@ -403,7 +409,7 @@
         </div>
       </section>
 
-      <!-- LAYER 9: SCREEN MANAJEMEN PENGGUNA (Mockup 9) -->
+      <!-- LAYER 9: SCREEN MANAJEMEN PENGGUNA -->
       <section id="view-manajemenUser" class="hidden space-y-6">
         <div class="flex justify-between items-center">
           <div>
@@ -424,7 +430,7 @@
         </div>
       </section>
 
-      <!-- LAYER 10: SCREEN PENGATURAN SISTEM (Mockup 10) -->
+      <!-- LAYER 10: SCREEN PENGATURAN SISTEM -->
       <section id="view-pengaturan" class="hidden space-y-6">
         <div>
           <h2 class="text-xl font-bold text-slate-800">Konfigurasi Identitas Instansi</h2>
@@ -454,6 +460,40 @@
        CORE CLIENT-SIDE ENGINE CONTROL LOGIC (JS)
        ========================================== -->
   <script>
+    // ==========================================
+    // 0. GERBANG KEAMANAN SESSION (MODULE 02)
+    // ==========================================
+    const sessionRaw = localStorage.getItem('cbt_session');
+    if (!sessionRaw) {
+      window.location.href = 'login.html';
+    }
+
+    const currentSession = JSON.parse(sessionRaw);
+
+    // Proteksi Otoritas Akses Dashboard Admin/Guru
+    if (!['ADMIN', 'GURU', 'OPERATOR'].includes(currentSession.role)) {
+      alert("Anda tidak memiliki hak akses ke panel ini!");
+      localStorage.removeItem('cbt_session');
+      window.location.href = 'login.html';
+    }
+
+    // Mengisi widget profile di UI secara dinamis setelah DOM siap
+    document.addEventListener("DOMContentLoaded", () => {
+      const displayEl = document.getElementById('profileNameDisplay');
+      const avatarEl = document.getElementById('userAvatar');
+      
+      if (displayEl) displayEl.innerText = currentSession.nama || currentSession.username;
+      if (avatarEl && currentSession.nama) {
+        avatarEl.innerText = currentSession.nama.substring(0, 2).toUpperCase();
+      }
+    });
+
+    // Fungsi Keluar Aplikasi (Logout)
+    function executeLogout() {
+      localStorage.removeItem('cbt_session');
+      window.location.href = 'login.html';
+    }
+
     // URL Endpoint API Apps Script Tunggal hasil deployment Anda
     const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxE_OIRpPdaAR91bwa3fT8myIKytHZF8P0_PH5ikF-9fqjAJqoi4NaLpKdHtn7o9V5zEA/exec';
     
@@ -481,7 +521,6 @@
         }
       });
 
-      // Lazy load data ketika menu diklik
       if (targetViewId === 'bankSoal') fetchCloudBankSoal();
     }
 
@@ -563,7 +602,6 @@
       btn.innerText = "Mengirim...";
       btn.disabled = true;
 
-      // Mapping array sesuai spesifikasi input database serverless
       const mappedData = excelParsedData.map(row => ({
         mapel: String(row['Mata Pelajaran'] || ''),
         kelas: String(row['Kelas'] || ''),
