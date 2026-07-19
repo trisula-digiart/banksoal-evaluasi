@@ -200,7 +200,7 @@
       }
     }
 
-    // ARSITEKTUR v26.0: UNIVERSAL DIGIT STRIPPER ENGINE & PURE RUNTIME COMPLIANCE
+    // ARSITEKTUR v27.0: PRECISE CONFIGURATION PATH ACCESSOR ENGINE
     function filterMapelDropdown() {
       const kelasSelect = document.getElementById('siswaKelas');
       const kelasTerpilih = kelasSelect.value ? String(kelasSelect.value).trim() : "";
@@ -218,39 +218,31 @@
 
       Object.keys(masterPaketAktif).forEach(idPaket => {
         const paket = masterPaketAktif[idPaket];
-        if (paket) {
-          const stringified = JSON.stringify(paket);
-          const semuaAngka = stringified.match(/\d+/g) || [];
+        
+        // VALIDASI ELEMEN: Pastikan data terbungkus sub-objek konfigurasi sesuai standar index.html
+        if (paket && paket.konfigurasi) {
+          const config = paket.konfigurasi;
           
-          const isKelasMatch = semuaAngka.includes(kelasTerpilih) || 
-                               stringified.toUpperCase().includes(`KLS ${kelasTerpilih}`) || 
-                               stringified.toUpperCase().includes(`KELAS ${kelasTerpilih}`);
+          // Ambil nilai properti kelas dari path yang akurat
+          let kelasDbRaw = config.kelas !== undefined ? String(config.kelas).trim() : "";
+          
+          // Normalisasi ekstraksi karakter angka tunggal dari database ("Kelas 5" / "5" -> "5")
+          let angkaKelasDb = "";
+          const matchDigit = kelasDbRaw.match(/\d+/);
+          if (matchDigit) {
+            angkaKelasDb = matchDigit[0];
+          } else {
+            angkaKelasDb = kelasDbRaw;
+          }
 
-          console.log(`[VERIFIKASI v26.0] ID Ujian: ${idPaket} | Angka Terdeteksi: [${semuaAngka.join(', ')}] | Match: ${isKelasMatch}`);
+          console.log(`[TARGET MATCH v27.0] ID Ujian: ${idPaket} | Angka Kelas DB: "${angkaKelasDb}" | Pilihan Siswa: "${kelasTerpilih}"`);
 
-          if (isKelasMatch) {
-            let namaMapelMurni = "";
-            let namaPaketMurni = "";
-
-            function extractLabelsDeep(obj) {
-              if (!obj) return;
-              Object.keys(obj).forEach(k => {
-                const lowerK = k.toLowerCase();
-                if (lowerK === 'mapel' || lowerK === 'mata_pelajaran' || lowerK === 'matapelajaran') {
-                  namaMapelMurni = obj[k];
-                }
-                if (lowerK === 'nama_paket' || lowerK === 'namapaket' || lowerK === 'paket') {
-                  namaPaketMurni = obj[k];
-                }
-                if (typeof obj[k] === 'object') {
-                  extractLabelsDeep(obj[k]);
-                }
-              });
-            }
-            extractLabelsDeep(paket);
-
-            if (!namaMapelMurni) namaMapelMurni = paket.mapel || "UJIAN AKTIF";
-            if (!namaPaketMurni) namaPaketMurni = paket.nama_paket || "";
+          // VALIDASI PRESISI MUTLAK: Bandingkan index angka murni tanpa distorsi data teks lain
+          if (angkaKelasDb !== "" && angkaKelasDb === kelasTerpilih) {
+            
+            // Ekstraksi nama mapel dan nama paket dari dalam sub-objek konfigurasi
+            const namaMapelMurni = config.mapel || config.mata_pelajaran || "MATA PELAJARAN";
+            const namaPaketMurni = config.nama_paket || "";
 
             const mapelLabel = String(namaMapelMurni).toUpperCase();
             const paketLabel = namaPaketMurni ? ` - ${namaPaketMurni}` : "";
@@ -276,6 +268,7 @@
       const kelas = document.getElementById('siswaKelas').value;
       const idUjian = document.getElementById('siswaMapel').value;
 
+      // Integrasi penuh dengan fungsi resmi client-side session manager auth-service.js
       if (typeof AUTH_SERVICE !== 'undefined' && typeof AUTH_SERVICE.studentDirectLogin === 'function') {
         AUTH_SERVICE.studentDirectLogin(nama, kelas);[cite: 3]
       } else {
@@ -294,7 +287,6 @@
       window.location.href = `siswa-exam.html?id_ujian=${idUjian}`;
     });
 
-    // REFACTOR SANITIZER: Membersihkan total token ilegal dan menyelaraskan penulisan fetch eksternal
     document.getElementById('staffForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const userEl = document.getElementById('username');
@@ -313,7 +305,6 @@
           throw new Error("Sistem otentikasi belum siap di browser.");
         }
 
-        // Jalur eksekusi bersih bebas dari token titik dua (:) yang merusak kompilasi
         const res = await AUTH_SERVICE.login(userEl.value, passEl.value);[cite: 3]
 
         if (res.success) {
