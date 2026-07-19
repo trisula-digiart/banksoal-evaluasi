@@ -146,7 +146,6 @@
 
           document.getElementById('examTitle').innerText = dataPaket.konfigurasi.nama_paket;
           
-          // PARSER FALLBACK: Jika list_soal bertipe Array, ubah menjadi struktur Object agar key mapping konsisten
           const rawSoal = dataPaket.list_soal;
           listSoal = {};
           
@@ -160,7 +159,6 @@
           
           totalSoal = Object.keys(listSoal).length;
 
-          // Tarik status progress live ujian dari Firebase
           db.ref(`live_exams/${idUjian}/${session.uid}`).once('value', (liveSnapshot) => {
             try {
               const liveData = liveSnapshot.val();
@@ -183,7 +181,6 @@
                 });
               }
 
-              // Jalankan rendering interface komponen utama
               buildNomorGrid();
               showQuestion(currentIndex);
               startTimerEngine();
@@ -260,20 +257,24 @@
       }
     }
 
+    // PATCH UPDATE: Mengamankan pembersihan layout jika ada data null di database kuis
     function showQuestion(index) {
       if (index < 1 || index > totalSoal) return;
       currentIndex = index;
       const soal = listSoal[index];
+      const containerOpsi = document.getElementById('optionsContainer');
       
-      if (!soal) {
+      document.getElementById('currentNumberBadge').innerText = index;
+
+      if (!soal || !soal.soal) {
         document.getElementById('questionText').innerText = "Soal pada nomor ini kosong atau tidak terformat.";
+        containerOpsi.innerHTML = `<div class="p-4 bg-red-50 border border-red-100 text-red-600 rounded-xl text-xs font-semibold">Tidak ada pilihan jawaban yang tersedia untuk soal yang kosong.</div>`;
+        buildNomorGrid();
         return;
       }
 
-      document.getElementById('currentNumberBadge').innerText = index;
-      document.getElementById('questionText').innerText = soal.soal || "Teks pertanyaan tidak tersedia.";
+      document.getElementById('questionText').innerText = soal.soal;
 
-      const containerOpsi = document.getElementById('optionsContainer');
       const currentAns = jawabanTerpilih[index] ? jawabanTerpilih[index].jawaban : "";
       const isRagu = jawabanTerpilih[index] ? jawabanTerpilih[index].status_ragu : false;
 
@@ -303,7 +304,6 @@
         jawabanTerpilih[currentIndex] = { jawaban: "", status_ragu: false };
       }
 
-      jawabanTerpilled = hurufOpsi; 
       jawabanTerpilih[currentIndex].jawaban = hurufOpsi;
 
       db.ref(`live_exams/${idUjian}/${session.uid}/jawaban_terpilih/${currentIndex}`).update({
