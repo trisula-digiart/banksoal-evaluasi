@@ -219,39 +219,53 @@
       }
     }
 
-    // RE-ENGINEERING: Fungsi filter pintar anti-mismatch data type
+    // RE-ENGINEERING v16.4: Metode Universal Digit Stripper (Anti-Gagal Tipe Data)
     function filterMapelDropdown() {
       const kelasSelect = document.getElementById('siswaKelas');
-      const kelasTerpilih = kelasSelect.value ? String(kelasSelect.value).trim() : "";
+      const kelasTerpilihRaw = kelasSelect.value ? String(kelasSelect.value).trim() : "";
       const mapelSelect = document.getElementById('siswaMapel');
       const btnSubmit = document.getElementById('btnSubmitSiswa');
 
-      // Ambil label asli teks opsi dropdown untuk kebutuhan pesan alert yang bersih
       const teksOpsiTerpilih = kelasSelect.options[kelasSelect.selectedIndex].text;
 
       mapelSelect.innerHTML = '<option value="">-- Pilih Mapel Ujian --</option>';
       mapelSelect.disabled = true;
       btnSubmit.disabled = true;
 
-      if (!kelasTerpilih || kelasTerpilih === "") return;
+      if (!kelasTerpilihRaw || kelasTerpilihRaw === "") return;
       if (!masterPaketAktif) return;
+
+      // Ambil angka murni dari input dropdown (Misal: "3" dari value "3")
+      const matchTerpilih = kelasTerpilihRaw.match(/\d+/);
+      const angkaKelasTerpilih = matchTerpilih ? matchTerpilih[0] : "";
 
       let foundAny = false;
 
       Object.keys(masterPaketAktif).forEach(idPaket => {
         const paket = masterPaketAktif[idPaket];
         if (paket) {
-          // Normalisasi ekstraksi string data kelas database
-          let dbKelas = "";
+          let dbKelasRaw = "";
           if (paket.konfigurasi && paket.konfigurasi.kelas) {
-            dbKelas = String(paket.konfigurasi.kelas).toUpperCase().trim();
+            dbKelasRaw = String(paket.konfigurasi.kelas).trim();
           } else if (paket.kelas) {
-            dbKelas = String(paket.kelas).toUpperCase().trim();
+            dbKelasRaw = String(paket.kelas).trim();
           }
 
-          // STRATEGI SUBSTRING: Cek apakah nilai dropdown ("1"-"6") terkandung di dalam teks database
-          // Contoh: "KELAS 3".includes("3") -> TRUE atau "3".includes("3") -> TRUE
-          if (dbKelas.includes(kelasTerpilih)) {
+          // Konversi angka romawi dasar ke angka biasa secara manual jika admin menginput via Romawi
+          let dbKelasNormal = dbKelasRaw.toUpperCase();
+          if (dbKelasNormal.includes("III")) dbKelasNormal = dbKelasNormal.replace("III", "3");
+          else if (dbKelasNormal.includes("II")) dbKelasNormal = dbKelasNormal.replace("II", "2");
+          else if (dbKelasNormal.includes("IV")) dbKelasNormal = dbKelasNormal.replace("IV", "4");
+          else if (dbKelasNormal.includes("VI")) dbKelasNormal = dbKelasNormal.replace("VI", "6");
+          else if (dbKelasNormal.includes("V")) dbKelasNormal = dbKelasNormal.replace("V", "5");
+          else if (dbKelasNormal.includes("I")) dbKelasNormal = dbKelasNormal.replace("I", "1");
+
+          // Ekstrak angka murni dari data Firebase (Misal: "3" dari string "Kelas 3" atau "3")
+          const matchDb = dbKelasNormal.match(/\d+/);
+          const angkaKelasDb = matchDb ? matchDb[0] : "";
+
+          // Bandingkan angka murni vs angka murni secara absolut
+          if (angkaKelasDb !== "" && angkaKelasDb === angkaKelasTerpilih) {
             let namaMapelMurni = "";
             let namaPaketMurni = "";
 
@@ -277,7 +291,6 @@
         mapelSelect.disabled = false;
         btnSubmit.disabled = false;
       } else {
-        // Pembersihan output teks: Menjamin nama instansi kelas bersih dari kata ganda
         alert("Tidak ada paket ujian aktif untuk " + teksOpsiTerpilih + " saat ini.");
       }
     }
