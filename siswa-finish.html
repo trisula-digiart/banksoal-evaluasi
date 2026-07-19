@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ujian Selesai | CBT-SAAS-GAS-GH</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Firebase App & Realtime Database SDK (v9 Compat Mode) -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+</head>
+<body class="bg-slate-50 font-sans flex items-center justify-center min-h-screen p-4">
+
+  <div class="w-full max-w-xl bg-white rounded-2xl shadow-xl border border-slate-200 p-8 text-center">
+    
+    <!-- LOADING STATE CONTAINER -->
+    <div id="loadingContainer" class="space-y-4 py-8">
+      <div class="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
+      <h2 class="text-xl font-bold text-slate-800">Menghitung Skor Ujian...</h2>
+      <p class="text-sm text-slate-500">Jawaban kamu sedang dikalkulasi dan disinkronkan ke master data sekolah.</p>
+    </div>
+
+    <!-- RESULT STATE CONTAINER (Hidden Awal) -->
+    <div id="resultContainer" class="hidden space-y-6">
+      <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 text-3xl mb-2">
+        🎉
+      </div>
+      <div>
+        <h2 class="text-2xl font-bold text-slate-800">Ujian Telah Selesai!</h2>
+        <p class="text-sm text-slate-500 mt-1">Terima kasih telah mengerjakan ujian dengan jujur.</p>
+      </div>
+
+      <!-- SCORE DISPLAY CARD -->
+      <div id="scoreBox" class="bg-indigo-50/50 border border-indigo-100 rounded-2xl p-6 my-4 hidden">
+        <p class="text-xs font-bold text-indigo-600 uppercase tracking-wider">Nilai Akhir Kamu</p>
+        <h3 id="txtNilaiAkhir" class="text-6xl font-black text-indigo-700 mt-1">0</h3>
+      </div>
+
+      <!-- DETAILED STATS GRID -->
+      <div class="grid grid-cols-3 gap-3 my-2 text-sm">
+        <div class="bg-emerald-50 border border-emerald-100 rounded-xl p-3">
+          <span class="block text-xs font-medium text-emerald-700">Benar</span>
+          <span id="txtBenar" class="text-lg font-bold text-emerald-800">0</span>
+        </div>
+        <div class="bg-red-50 border border-red-100 rounded-xl p-3">
+          <span class="block text-xs font-medium text-red-700">Salah</span>
+          <span id="txtSalah" class="text-lg font-bold text-red-800">0</span>
+        </div>
+        <div class="bg-slate-50 border border-slate-100 rounded-xl p-3">
+          <span class="block text-xs font-medium text-slate-600">Kosong</span>
+          <span id="txtKosong" class="text-lg font-bold text-slate-800">0</span>
+        </div>
+      </div>
+
+      <div class="pt-4 border-t border-slate-100">
+        <a href="siswa-exam-list.html" class="inline-block w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-xl transition-colors shadow-lg shadow-indigo-100">
+          Kembali ke Daftar Ujian
+        </a>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="auth-service.js"></script>
+  <script>
+    // 1. Proteksi Halaman & Ambil Kredensial
+    const session = AUTH_SERVICE.checkSession(['SISWA']);
+    const urlParams = new URLSearchParams(window.location.search);
+    const idUjian = urlParams.get('id_ujian');
+
+    if (!idUjian || !session) {
+      window.location.href = "siswa-exam-list.html";
+    }
+
+    const firebaseConfig = {
+      databaseURL: "https://cbt-saas-gas-gh-default-rtdb.firebaseio.com/"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    async function calculateAndReport() {
+      try {
+        // 2. Ambil data konfigurasi paket ujian dari Firebase
+        const paketSnapshot = await db.ref(`active_packages/${idUjian}`).once('value');
+        const dataPaket = paketSnapshot.val();
+
+        // 3. Ambil data jawaban live siswa dari Firebase
+        const liveSnapshot = await db.ref(`live_exams/${idUjian}/${session.uid}`).once('value');
+        const liveData = liveSnapshot.val();
+
+        if (!dataPaket || !liveData) {
+          alert("Data operasional ujian tidak valid!");
+          window.location.href = "siswa-exam-list.html";
+          return;
+        }
+
+        // 4. Ambil master soal asli langsung dari GAS (mengandung kunci jawaban asli untuk koreksi aman)
+        const gasRes = await fetch(`${AUTH_SERVICE.GAS_API_URL}?action=getSoalList`);
+        const gasResult = await gasRes.json();
+        
+        if (gasResult.status !== "SUCCESS") {
+          throw new Error("Gagal mengambil kunci jawaban master.");
+        }
+        
+        const masterSoal = gasResult.data;
+        const listSoalPaket = dataPaket.list_soal;
+        const jawabanSiswa = liveData.jawaban_terpilih || {};
+
+        let benar = 0;
+        let salah = 0;
+        let kosong = 0;
+        let totalBobotDapat = 0;
+        let totalBobotMaksimal = 0;
+
+        // 5. Looping koreksi berbasis list soal yang ada di paket ujian ini
+        Object.keys(listSoalPaket).forEach(nomor => {
+          const itemPaket = listSoalPaket[nomor];
+          const ansSiswa = jawabanSiswa[nomor] ? jawabanSiswa[nomor].jawaban : "";
+          
+          // Cari soal asli di master data buat dapetin kunci & bobot real
+          const soalAsli = masterSoal.find(s => s.id_soal === itemPaket.id_soal);
+          const bobotSoal = soalAsli ? parseFloat(soalAsli.bobot) : 1;
+          const kunciAsli = soalAsli ? soalAsli.kunci_jawaban.toUpperCase().trim() : "";
+
+          totalBobotMaksimal += bobotSoal;
+
+          if (ansSiswa === "") {
+            kosong++;
+          } else if (ansSiswa === kunciAsli) {
+            benar++;
+            totalBobotDapat += bobotSoal;
+          } else {
+            salah++;
+          }
+        });
+
+        // Hitung nilai akhir skala 0-100
+        let nilaiAkhir = totalBobotMaksimal > 0 ? Math.round((totalBobotDapat / totalBobotMaksimal) * 100) : 0;
+
+        // 6. Kirim Payload Tunggal via GAS (Anti-Rate Limit Target)
+        const idRekap = "REKAP-" + AUTH_SERVICE.GAS_API_URL.substring(0, 4) + Math.random().toString(36).substring(2, 7).toUpperCase();
+        const payloadGAS = {
+          action: "submitFinalScore",
+          payload: {
+            id_rekap: idRekap,
+            id_ujian: idUjian,
+            id_siswa: session.uid,
+            nilai_akhir: nilaiAkhir,
+            total_benar: benar,
+            total_salah: salah,
+            total_kosong: kosong
+          }
+        };
+
+        const postRes = await fetch(AUTH_SERVICE.GAS_API_URL, {
+          method: "POST",
+          mode: "cors",
+          headers: { "Content-Type": "text/plain" },
+          body: JSON.stringify(payloadGAS)
+        });
+        const postResult = await postRes.json();
+
+        if (postResult.status === "SUCCESS") {
+          // 7. Render UI hasil ke layar siswa
+          document.getElementById('loadingContainer').classList.add('hidden');
+          document.getElementById('resultContainer').classList.remove('hidden');
+
+          document.getElementById('txtBenar').innerText = benar;
+          document.getElementById('txtSalah').innerText = salah;
+          document.getElementById('txtKosong').innerText = kosong;
+
+          // Cek konfigurasi apakah nilai boleh langsung dilihat siswa
+          if (dataPaket.konfigurasi.tampilkan_nilai) {
+            document.getElementById('scoreBox').classList.remove('hidden');
+            document.getElementById('txtNilaiAkhir').innerText = nilaiAkhir;
+          }
+        } else {
+          alert("Gagal merekam data ke database utama: " + postResult.error);
+        }
+
+      } catch (error) {
+        console.error(error);
+        alert("Terjadi kesalahan sistem saat memproses nilai final!");
+      }
+    }
+
+    window.onload = calculateAndReport;
+  </script>
+</body>
+</html>
