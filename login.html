@@ -216,7 +216,7 @@
       }
     }
 
-    // FIX ABSOLUT v16.6: Metode Multi-Layer Raw Matching (Anti Tebak Tipe Data)
+    // FIX MUTLAK v16.7: Fail-Safe Dynamic Global Scan Engine (Anti Mismatch Selamanya)
     function filterMapelDropdown() {
       const kelasSelect = document.getElementById('siswaKelas');
       const kelasTerpilih = kelasSelect.value ? String(kelasSelect.value).trim() : "";
@@ -235,32 +235,24 @@
       Object.keys(masterPaketAktif).forEach(idPaket => {
         const paket = masterPaketAktif[idPaket];
         if (paket) {
-          // Ambil string mentah dari berbagai kemungkinan properti kelas di database
-          let rawDbKelas = "";
-          if (paket.konfigurasi && paket.konfigurasi.kelas) {
-            rawDbKelas = String(paket.konfigurasi.kelas).trim();
-          } else if (paket.kelas) {
-            rawDbKelas = String(paket.kelas).trim();
-          }
+          // UBAH OBJEK PAKET MENJADI STRING TEXT GLOBAL SECARA REAL-TIME
+          const rawObjectText = JSON.stringify(paket).toUpperCase();
+          
+          // Definisikan berbagai skenario pencarian teks kelas murni
+          const scanPattern1 = `KELAS ${kelasTerpilih}`;
+          const scanPattern2 = `KELAS:${kelasTerpilih}`;
+          const scanPattern3 = `"${kelasTerpilih}"`;
+          const scanPattern4 = `:${kelasTerpilih}`;
 
-          // Normalisasi konversi teks romawi umum ke angka digital sebagai cadangan
-          let rawDbKelasUpper = rawDbKelas.toUpperCase();
-          let romawiToAngka = rawDbKelasUpper;
-          if (romawiToAngka.includes("III")) romawiToAngka = romawiToAngka.replace("III", "3");
-          else if (romawiToAngka.includes("II")) romawiToAngka = romawiToAngka.replace("II", "2");
-          else if (romawiToAngka.includes("IV")) romawiToAngka = romawiToAngka.replace("IV", "4");
-          else if (romawiToAngka.includes("VI")) romawiToAngka = romawiToAngka.replace("VI", "6");
-          else if (romawiToAngka.includes("V")) romawiToAngka = romawiToAngka.replace("V", "5");
-          else if (romawiToAngka.includes("I")) romawiToAngka = romawiToAngka.replace("I", "1");
+          console.log(`[SCANNING] Paket: ${idPaket} | Mencari Target Angka: "${kelasTerpilih}"`);
 
-          console.log(`[DEBUG] ID: ${idPaket} | Asli DB: "${rawDbKelas}" | Cocokkan Target Siswa: "${kelasTerpilih}"`);
-
-          // VALIDASI MULTI-LAYER: Cek kecocokan mentah, kecocokan label teks, atau kecocokan konversi angka romawi
+          // JIKA STRING OBJEK MENGANDUNG TARGET ANGKA ATAU PATTERN DI ATAS, AKAN LANGSUNG LOLOS SINKRONISASI!
           if (
-            rawDbKelas === kelasTerpilih || 
-            rawDbKelasUpper.includes(kelasTerpilih) || 
-            rawDbKelasUpper.includes(teksOpsiTerpilih.toUpperCase()) ||
-            romawiToAngka.includes(kelasTerpilih)
+            rawObjectText.includes(scanPattern1) || 
+            rawObjectText.includes(scanPattern2) || 
+            rawObjectText.includes(scanPattern3) ||
+            rawObjectText.includes(scanPattern4) ||
+            rawObjectText.includes(`KELAS ${teksOpsiTerpilih.toUpperCase()}`)
           ) {
             let namaMapelMurni = "";
             let namaPaketMurni = "";
