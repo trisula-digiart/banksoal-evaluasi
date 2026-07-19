@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Import Soal Excel | CBT-SAAS-GAS-GH</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Library untuk parsing Excel di Frontend -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+</head>
+<body class="bg-slate-100 font-sans flex min-h-screen">
+
+  <!-- SIDEBAR (Sama dengan Dashboard) -->
+  <aside class="w-64 bg-indigo-900 text-white flex flex-col fixed h-full z-10">
+    <div class="p-5 text-xl font-bold tracking-wider border-b border-indigo-800 flex items-center gap-2">
+      <span class="p-2 bg-indigo-600 rounded-lg text-sm">GAS</span> CBT PREMIUM
+    </div>
+    <nav class="flex-1 p-4 space-y-2">
+      <a href="dashboard.html" class="flex items-center gap-3 px-4 py-3 hover:bg-indigo-800/50 rounded-xl text-indigo-200 hover:text-white transition-all">
+        <span>📊</span> Dashboard
+      </a>
+      <a href="bank-soal.html" class="flex items-center gap-3 px-4 py-3 bg-indigo-800 rounded-xl text-white font-medium transition-all">
+        <span>📚</span> Bank Soal
+      </a>
+    </nav>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="flex-1 ml-64 p-8">
+    <div class="flex items-center gap-3 mb-6">
+      <a href="bank-soal.html" class="text-slate-400 hover:text-slate-600 text-lg">⬅️</a>
+      <h1 class="text-2xl font-bold text-slate-800">Import Soal dari Excel</h1>
+    </div>
+
+    <!-- DRAG & DROP AREA -->
+    <section class="bg-white p-8 rounded-xl shadow-sm border border-slate-100 mb-6 text-center">
+      <div id="dropZone" class="border-2 border-dashed border-slate-300 hover:border-indigo-500 rounded-xl p-8 cursor-pointer transition-colors bg-slate-50">
+        <span class="text-4xl block mb-2">📁</span>
+        <p class="text-sm font-medium text-slate-700">Klik untuk pilih file atau seret file Excel (.xlsx) ke sini</p>
+        <p class="text-xs text-slate-400 mt-1">Pastikan susunan kolom sesuai format: Mapel, Kelas, Semester, Kesulitan, Bobot, Soal, A, B, C, D, Kunci, Pembahasan</p>
+        <input type="file" id="fileInput" accept=".xlsx" class="hidden">
+      </div>
+    </section>
+
+    <!-- COUNTER BADGE & ACTION -->
+    <section id="previewSection" class="hidden bg-white p-6 rounded-xl shadow-sm border border-slate-100 mb-6 flex justify-between items-center">
+      <div class="flex gap-4">
+        <span class="px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-lg font-semibold text-xs border border-emerald-100">
+          🟢 Valid: <span id="countValid">0</span> Soal
+        </span>
+        <span id="errorBadge" class="hidden px-3 py-1.5 bg-red-50 text-red-700 rounded-lg font-semibold text-xs border border-red-100">
+          🔴 Error/Kosong: <span id="countError">0</span> Baris
+        </span>
+      </div>
+      <button id="btnProsesImport" disabled class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 text-white font-medium rounded-xl transition-colors shadow-sm text-sm">
+        Proses Impor Soal Valid
+      </button>
+    </section>
+
+    <!-- PREVIEW TABLE -->
+    <section id="tableSection" class="hidden bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+      <div class="p-4 bg-slate-50 border-b border-slate-100">
+        <h3 class="text-sm font-bold text-slate-700">Preview Data Hasil Parsing</h3>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-slate-50 text-slate-600 text-xs font-semibold uppercase border-b border-slate-100">
+              <th class="p-4">No</th>
+              <th class="p-4">Mapel/Kelas</th>
+              <th class="p-4 w-1/3">Teks Soal</th>
+              <th class="p-4 text-center">Kunci</th>
+              <th class="p-4">Status</th>
+            </tr>
+          </thead>
+          <tbody id="previewTableBody" class="text-slate-700 text-xs divide-y divide-slate-100">
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script src="auth-service.js"></script>
+  <script>
+    AUTH_SERVICE.checkSession(['ADMIN', 'GURU']);
+    
+    let parsedSoalData = [];
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+
+    // Trigger input file pas area diklik
+    dropZone.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', (e) => handleFile(e.target.files[0]));
+
+    // Drag & Drop listener
+    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('border-indigo-500'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('border-indigo-500'));
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropZone.classList.remove('border-indigo-500');
+      if (e.dataTransfer.files.length > 0) handleFile(e.dataTransfer.files[0]);
+    });
+
+    function handleFile(file) {
+      if (!file) return;
+      
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        
+        // Ambil sheet pertama
+        const firstSheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[firstSheetName];
+        
+        // Convert ke JSON array-of-arrays (Row 1 asumsi header)
+        const rawRows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+        processExcelRows(rawRows);
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    function processExcelRows(rows) {
+      if (rows.length <= 1) {
+        alert("File Excel kosong atau tidak ada data setelah baris header!");
+        return;
+      }
+
+      parsedSoalData = [];
+      let validCount = 0;
+      let errorCount = 0;
+
+      // Iterasi mulai dari baris indeks 1 (skip header)
+      for (let i = 1; i < rows.length; i++) {
+        const row = rows[i];
+        if (!row || row.length === 0) continue;
+
+        // Pemetaan kolom: Mapel(0), Kelas(1), Semester(2), Kesulitan(3), Bobot(4), Soal(5), A(6), B(7), C(8), D(9), Kunci(10), Pembahasan(11)
+        const soalObj = {
+          mapel: row[0] ? String(row[0]).trim() : "",
+          kelas: row[1] ? String(row[1]).trim() : "",
+          semester: row[2] ? parseInt(row[2]) : 1,
+          tingkat_kesulitan: row[3] ? String(row[3]).toUpperCase().trim() : "SEDANG",
+          bobot: row[4] ? parseFloat(row[4]) : 1,
+          konten_soal: row[5] ? String(row[5]).trim() : "",
+          opsi_a: row[6] ? String(row[6]).trim() : "",
+          opsi_b: row[7] ? String(row[7]).trim() : "",
+          opsi_c: row[8] ? String(row[8]).trim() : "",
+          opsi_d: row[9] ? String(row[9]).trim() : "",
+          kunci_jawaban: row[10] ? String(row[10]).toUpperCase().trim() : "",
+          pembahasan: row[11] ? String(row[11]).trim() : "",
+          isValid: true,
+          errorMsg: ""
+        };
+
+        // Validasi dasar field wajib di Frontend
+        if (!soalObj.konten_soal || !soalObj.opsi_a || !soalObj.opsi_b || !soalObj.kunci_jawaban) {
+          soalObj.isValid = false;
+          soalObj.errorMsg = "Soal, Opsi A/B, & Kunci wajib diisi!";
+          errorCount++;
+        } else {
+          validCount++;
+        }
+
+        parsedSoalData.push(soalObj);
+      }
+
+      // Tampilkan komponen visual preview
+      document.getElementById('previewSection').classList.remove('hidden');
+      document.getElementById('tableSection').classList.remove('hidden');
+      
+      document.getElementById('countValid').innerText = validCount;
+      if (errorCount > 0) {
+        document.getElementById('errorBadge').classList.remove('hidden');
+        document.getElementById('countError').innerText = errorCount;
+      } else {
+        document.getElementById('errorBadge').classList.add('hidden');
+      }
+
+      const btnImport = document.getElementById('btnProsesImport');
+      btnImport.disabled = validCount === 0;
+
+      // Render baris ke tabel preview
+      const tbody = document.getElementById('previewTableBody');
+      tbody.innerHTML = parsedSoalData.map((s, index) => `
+        <tr class="${s.isValid ? 'hover:bg-slate-50' : 'bg-red-50/50'}">
+          <td class="p-4 font-medium text-slate-500">${index + 1}</td>
+          <td class="p-4 font-medium">${s.mapel || '-'}<br><span class="text-slate-400 font-normal">Kls ${s.kelas || '-'}</span></td>
+          <td class="p-4 text-slate-600 truncate max-w-xs">${s.konten_soal || '<KOSONG>'}</td>
+          <td class="p-4 text-center font-bold text-indigo-600">${s.kunci_jawaban || '-'}</td>
+          <td class="p-4">
+            ${s.isValid 
+              ? '<span class="text-emerald-600 font-semibold">✓ Siap Impor</span>' 
+              : `<span class="text-red-600 font-medium">${s.errorMsg}</span>`}
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    // Aksi kirim data batch valid ke backend GAS
+    document.getElementById('btnProsesImport').addEventListener('click', async () => {
+      const validSoal = parsedSoalData.filter(s => s.isValid);
+      if (validSoal.length === 0) return;
+
+      const btn = document.getElementById('btnProsesImport');
+      btn.disabled = true;
+      btn.innerText = "Mengirim Batch Data...";
+
+      const payload = {
+        action: "importSoalBatch",
+        payload: validSoal
+      };
+
+      try {
+        const res = await fetch(AUTH_SERVICE.GAS_API_URL, {
+          method: "POST",
+          mode: "cors",
+          headers: { "Content-Type": "text/plain" },
+          body: JSON.stringify(payload)
+        });
+        const result = await res.json();
+
+        if (result.status === "SUCCESS") {
+          alert(result.data.message);
+          window.location.href = "bank-soal.html";
+        } else {
+          alert("Gagal memproses batch: " + result.error);
+          btn.disabled = false;
+          btn.innerText = "Proses Impor Soal Valid";
+        }
+      } catch (err) {
+        alert("Gangguan jaringan saat memproses bulk insert!");
+        btn.disabled = false;
+        btn.innerText = "Proses Impor Soal Valid";
+      }
+    });
+  </script>
+</body>
+</html>
