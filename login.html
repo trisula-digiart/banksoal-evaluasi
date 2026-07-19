@@ -127,7 +127,7 @@
         
         const snapshot = await db.ref('active_packages').once('value');
         masterPaketAktif = snapshot.val() || {};
-        console.log("=== VERSI 11: DATA FIREBASE READY ===");
+        console.log("=== DATA FIREBASE READY ===");
         
         kelasSelect.options[0].text = "-- Pilih Kelas --";
         kelasSelect.value = "";
@@ -152,13 +152,41 @@
       if (!masterPaketAktif) return;
 
       let foundAny = false;
+      const cleanTargetKelas = String(kelasTerpilih).replace(/[^0-9]/g, "").trim();
 
-      // PATCH V11: Tampilkan semua paket ujian yang ada di database tanpa memedulikan filter key properti kelas yang hilang
       Object.keys(masterPaketAktif).forEach(idPaket => {
         const paket = masterPaketAktif[idPaket];
         if (paket) {
-          const namaTampilan = idPaket; // Gunakan ID Ujian (contoh: EXAM-05DCEFF5) sebagai nama opsi dropdown
-          mapelSelect.innerHTML += `<option value="${idPaket}">${namaTampilan}</option>`;
+          // PENGAMBILAN DATA MAPEL SECARA AKTIF & AMAN
+          let namaMapelMurni = "";
+          let namaPaketMurni = "";
+
+          // Cek di dalam objek konfigurasi terlebih dahulu
+          if (paket.konfigurasi) {
+            namaMapelMurni = paket.konfigurasi.mapel || paket.konfigurasi.mata_pelajaran || paket.konfigurasi.nama_mapel || "";
+            namaPaketMurni = paket.konfigurasi.nama_paket || paket.konfigurasi.judul || "";
+          }
+          
+          // Fallback ke root level jika sub-objek kosong
+          if (!namaMapelMurni) namaMapelMurni = paket.mapel || paket.mata_pelajaran || paket.nama_mapel || "";
+          if (!namaPaketMurni) namaPaketMurni = paket.nama_paket || paket.judul || "";
+
+          // Jika text mapel tidak ditemukan sama sekali di key manapun, lakukan scan string value alternatif
+          if (!namaMapelMurni && paket.konfigurasi) {
+            Object.keys(paket.konfigurasi).forEach(k => {
+              if (k.toLowerCase().includes('mapel') || k.toLowerCase().includes('pelajaran')) {
+                namaMapelMurni = paket.konfigurasi[k];
+              }
+            });
+          }
+
+          // FORMAT STRATEGI: Tampilkan Nama Mapel + (ID Ujian) untuk memudahkan identifikasi unik
+          const mapelLabel = namaMapelMurni ? String(namaMapelMurni).toUpperCase() : "UJIAN AKTIF";
+          const paketLabel = namaPaketMurni ? ` - ${namaPaketMurni}` : "";
+          const textOpsiTampilan = `${mapelLabel}${paketLabel} (${idPaket})`;
+
+          // Masukkan opsi ke dalam select element
+          mapelSelect.innerHTML += `<option value="${idPaket}">${textOpsiTampilan}</option>`;
           foundAny = true;
         }
       });
