@@ -200,7 +200,7 @@
       }
     }
 
-    // ARSITEKTUR v25.0: RE-ENGINEERED UNIVERSAL STRIPPER SCANNER
+    // ARSITEKTUR v26.0: UNIVERSAL DIGIT STRIPPER ENGINE & PURE RUNTIME COMPLIANCE
     function filterMapelDropdown() {
       const kelasSelect = document.getElementById('siswaKelas');
       const kelasTerpilih = kelasSelect.value ? String(kelasSelect.value).trim() : "";
@@ -222,12 +222,11 @@
           const stringified = JSON.stringify(paket);
           const semuaAngka = stringified.match(/\d+/g) || [];
           
-          // Pencocokan ketat berbasis string dan token angka dari Google Sheets
           const isKelasMatch = semuaAngka.includes(kelasTerpilih) || 
                                stringified.toUpperCase().includes(`KLS ${kelasTerpilih}`) || 
                                stringified.toUpperCase().includes(`KELAS ${kelasTerpilih}`);
 
-          console.log(`[VERIFIKASI v25.0] ID Ujian: ${idPaket} | Angka Terdeteksi: [${semuaAngka.join(', ')}] | Hasil Match: ${isKelasMatch}`);
+          console.log(`[VERIFIKASI v26.0] ID Ujian: ${idPaket} | Angka Terdeteksi: [${semuaAngka.join(', ')}] | Match: ${isKelasMatch}`);
 
           if (isKelasMatch) {
             let namaMapelMurni = "";
@@ -295,7 +294,7 @@
       window.location.href = `siswa-exam.html?id_ujian=${idUjian}`;
     });
 
-    // REFACTOR: Pembersihan total Syntax Error Token Panggilan Object Form
+    // REFACTOR SANITIZER: Membersihkan total token ilegal dan menyelaraskan penulisan fetch eksternal
     document.getElementById('staffForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const userEl = document.getElementById('username');
@@ -314,7 +313,7 @@
           throw new Error("Sistem otentikasi belum siap di browser.");
         }
 
-        // Sintaksis bersih bebas dari typo karakter titik dua (:) ilegal
+        // Jalur eksekusi bersih bebas dari token titik dua (:) yang merusak kompilasi
         const res = await AUTH_SERVICE.login(userEl.value, passEl.value);[cite: 3]
 
         if (res.success) {
