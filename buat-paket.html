@@ -30,7 +30,7 @@
             </div>
             <div>
               <label class="block mb-2 text-sm font-medium text-slate-700">Target Kelas</label>
-              <input type="text" id="kelas" required placeholder="X-IPA" class="w-full px-4 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+              <input type="text" id="kelas" required placeholder="Contoh: 5 atau X" class="w-full px-4 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500">
             </div>
           </div>
         </div>
@@ -44,7 +44,7 @@
             </div>
             <div>
               <label class="block mb-2 text-sm font-medium text-slate-700">Jumlah Soal</label>
-              <input type="number" id="jumlah_soal" required min="1" value="20" class="w-full px-4 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+              <input type="number" id="jumlah_soal" required min="1" value="10" class="w-full px-4 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500">
             </div>
           </div>
           <div class="grid grid-cols-2 gap-4">
@@ -97,7 +97,6 @@
             <option value="DRAFT" class="text-slate-500">⚪ DRAFT (Simpan di Sheets Saja)</option>
           </select>
 
-          <!-- FIXED: Pembersihan total atribut inline onclick gaib -->
           <button type="submit" id="btnSimpanPaket"
             class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-xl transition-colors shadow-lg shadow-indigo-100 text-center block">
             Simpan & Rilis Paket Live
@@ -113,46 +112,66 @@
 
     document.getElementById('paketForm').addEventListener('submit', async (e) => {
       e.preventDefault();
+      
       const btn = document.getElementById('btnSimpanPaket');
       btn.disabled = true;
       btn.innerText = "Memproses Sinkronisasi Data...";
 
-      const payload = {
-        action: "createPaketUjian",
-        payload: {
-          nama_paket: document.getElementById('nama_paket').value.trim(),
-          mapel: document.getElementById('mapel').value.trim(),
-          kelas: document.getElementById('kelas').value.trim(),
-          durasi: parseInt(document.getElementById('durasi').value),
-          jumlah_soal: parseInt(document.getElementById('jumlah_soal').value),
-          waktu_mulai: document.getElementById('waktu_mulai').value,
-          waktu_selesai: document.getElementById('waktu_selesai').value,
-          acak_soal: document.getElementById('acak_soal').checked,
-          acak_opsi: document.getElementById('acak_opsi').checked,
-          tampilkan_nilai: document.getElementById('tampilkan_nilai').checked,
-          status: document.getElementById('status').value
-        }
-      };
-
       try {
+        // Pengecekan elemen DOM secara defensif
+        const namaPaketEl = document.getElementById('nama_paket');
+        const mapelEl = document.getElementById('mapel');
+        const kelasEl = document.getElementById('kelas');
+        const durasiEl = document.getElementById('durasi');
+        const jumlahSoalEl = document.getElementById('jumlah_soal');
+        const waktuMulaiEl = document.getElementById('waktu_mulai');
+        const waktuSelesaiEl = document.getElementById('waktu_selesai');
+        const acakSoalEl = document.getElementById('acak_soal');
+        const acakOpsiEl = document.getElementById('acak_opsi');
+        const tampilkanNilaiEl = document.getElementById('tampilkan_nilai');
+        const statusEl = document.getElementById('status');
+
+        if (!namaPaketEl || !mapelEl || !kelasEl || !durasiEl || !jumlahSoalEl || !waktuMulaiEl || !waktuSelesaiEl) {
+          throw new Error("Ada elemen input HTML yang hilang atau strukturnya berubah, bro!");
+        }
+
+        const payload = {
+          action: "createPaketUjian",
+          payload: {
+            nama_paket: namaPaketEl.value.trim(),
+            mapel: mapelEl.value.trim().toUpperCase(), // Paksa uppercase biar match database
+            kelas: kelasEl.value.trim(),
+            durasi: parseInt(durasiEl.value) || 0,
+            jumlah_soal: parseInt(jumlahSoalEl.value) || 0,
+            waktu_mulai: waktuMulaiEl.value,
+            waktu_selesai: waktuSelesaiEl.value,
+            acak_soal: acakSoalEl ? acakSoalEl.checked : true,
+            acak_opsi: acakOpsiEl ? acakOpsiEl.checked : true,
+            tampilkan_nilai: tampilkanNilaiEl ? tampilkanNilaiEl.checked : true,
+            status: statusEl.value
+          }
+        };
+
         const res = await fetch(AUTH_SERVICE.GAS_API_URL, {
           method: "POST",
           mode: "cors",
           headers: { "Content-Type": "text/plain" },
           body: JSON.stringify(payload)
         });
+        
         const result = await res.json();
 
         if (result.status === "SUCCESS") {
           alert(result.data.message);
           window.location.href = "dashboard.html";
         } else {
-          alert("Gagal Sinkronisasi: " + result.error);
+          alert("Gagal Dari Backend: " + result.error);
           btn.disabled = false;
           btn.innerText = "Simpan & Rilis Paket Live";
         }
       } catch(err) {
-        alert("Terjadi gangguan koneksi pada Dual-Write Engine!");
+        alert("CRITICAL ERROR: " + err.message);
+        console.error(err);
         btn.disabled = false;
         btn.innerText = "Simpan & Rilis Paket Live";
       }
