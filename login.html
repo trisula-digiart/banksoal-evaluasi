@@ -146,7 +146,6 @@
       }
     }
 
-    // ARSITEKTUR v29.0: TARGETED CONDITIONAL GATE FILTER ENGINE
     function filterMapelDropdown() {
       const kelasSelect = document.getElementById('siswaKelas');
       const kelasTerpilih = kelasSelect.value ? kelasSelect.value.trim() : "";
@@ -161,13 +160,13 @@
       if (!masterPaketAktif) return;
 
       let foundAny = false;
-      const cleanTargetKelas = String(kelasTerpilih).replace(/[^0-9]/g, "").trim();
+      const targetKelasStr = String(kelasTerpilih).trim();
 
       Object.keys(masterPaketAktif).forEach(idPaket => {
         const paket = masterPaketAktif[idPaket];
         if (paket) {
           
-          // 1. Ambil Jalur Properti Kelas secara Akurat (Kompatibel dengan Blueprint index.html)
+          // 1. DUAL PATH EKSTRAKSI KELAS (KOMPATIBEL ROOT DAN SUB-OBJEK KONFIGURASI)
           let kelasDbRaw = "";
           if (paket.konfigurasi && paket.konfigurasi.kelas !== undefined) {
             kelasDbRaw = String(paket.konfigurasi.kelas).trim();
@@ -175,13 +174,16 @@
             kelasDbRaw = String(paket.kelas).trim();
           }
 
-          // Ekstrak Angka Murni dari Properti Kelas Database (Contoh: "Kelas 3" -> "3")
+          // 2. HYBRID MATCHING GATE LOGIC (Anti-Kebocoran & Mencegah False-Negative)
           const cleanDbKelas = kelasDbRaw.replace(/[^0-9]/g, "").trim();
+          const uppercaseDb = kelasDbRaw.toUpperCase();
 
-          // ==========================================================
-          // GERBANG VALIDASI KETAT: COCOKKAN KELAS SISWA VS KELAS DATABASE
-          // ==========================================================
-          if (cleanDbKelas !== "" && cleanDbKelas === cleanTargetKelas) {
+          const isKelasMatch = (cleanDbKelas !== "" && cleanDbKelas === targetKelasStr) ||
+                               uppercaseDb.includes(`KELAS ${targetKelasStr}`) ||
+                               uppercaseDb.includes(`KLS ${targetKelasStr}`) ||
+                               kelasDbRaw === targetKelasStr;
+
+          if (isKelasMatch) {
             let namaMapelMurni = "";
             let namaPaketMurni = "";
 
@@ -232,7 +234,7 @@
       window.location.href = `siswa-exam.html?id_ujian=${idUjian}`;
     });
 
-    // LISTENER 2: SUBMIT LOGIN ADMIN / STAFF (BERSIH & AMAN DARI TYPO SINTAKSIS)
+    // LISTENER 2: PATCH RECOVERY - SUBMIT LOGIN ADMIN / STAFF
     document.getElementById('staffForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const userEl = document.getElementById('username');
