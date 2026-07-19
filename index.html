@@ -354,6 +354,19 @@
             <div class="pt-2">
               <button onclick="createExamPackage()" id="btnSimpanPaket" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition-all shadow-md">Simpan & Rilis Paket Live</button>
             </div>
+
+            <!-- ========================================================================= -->
+            <!-- EXTENSION v46.0: SINKRONISASI BARIS HYBRID (GOOGLE SPREADSHEET ROW)       -->
+            <!-- ========================================================================= -->
+            <div class="mt-4 pt-4 border-t border-slate-200/80">
+              <p class="text-[10px] font-bold text-emerald-700 uppercase mb-1.5 tracking-wider">⚡ ALTERNATIF INPUT SPREADSHEET</p>
+              <button type="button" id="btnSyncFromSheetsRow" onclick="triggerSyncSheetsRowLive()"
+                class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition-all shadow-md text-[10px] uppercase tracking-wider flex items-center justify-center gap-1.5">
+                <span>🔄 Sync Baris Sheets ke Firebase</span>
+              </button>
+            </div>
+            <!-- ========================================================================= -->
+
           </div>
         </div>
       </section>
@@ -392,7 +405,7 @@
       <section id="view-analitik" class="hidden space-y-6">
         <div class="flex justify-between items-center">
           <div>
-            <h2 class="text-xl font-bold text-slate-800">Analitik Hasil Evaluasi</h2>
+            <h2 class="text-xl font-bold text-slate-800">Analitik Hasil Ujian</h2>
             <p class="text-xs text-slate-400 mt-0.5">Daftar rekam nilai real-time peserta didik langsung dari basis data cloud Sheets.</p>
           </div>
           <button onclick="fetchAnalitikNilai()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-sm transition-colors">🔄 Segarkan Nilai</button>
@@ -774,6 +787,40 @@
       } finally {
         btn.disabled = false;
         btn.innerText = "Simpan & Rilis Paket Live";
+      }
+    }
+
+    // =========================================================================
+    // JALUR 2: INTERCEPTOR LOGIC v46.0 BULK SYNC ENGINE SPREADSHEET TO FIREBASE 
+    // =========================================================================
+    async function triggerSyncSheetsRowLive() {
+      const btn = document.getElementById('btnSyncFromSheetsRow');
+      if (!btn) return;
+
+      btn.disabled = true;
+      const originalText = btn.innerHTML;
+      btn.innerHTML = `<span>⏳ Memproses Cloud Sync...</span>`;
+
+      try {
+        const response = await fetch(GAS_WEB_APP_URL, {
+          method: "POST",
+          mode: "cors",
+          headers: { "Content-Type": "text/plain" },
+          body: JSON.stringify({ action: "syncSheetManualToFirebase" })
+        });
+        
+        const result = await response.json();
+        if (result.status === "SUCCESS") {
+          alert("🎉 Sukses, Bro!\n" + result.data.message);
+          if (typeof fetchDashboardStats === 'function') fetchDashboardStats();
+        } else {
+          alert("⚠️ Gagal Diproses Server:\n" + result.error);
+        }
+      } catch (error) {
+        alert("❌ Koneksi Pipa Data Gagal!\nDetail: " + error.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
       }
     }
 
