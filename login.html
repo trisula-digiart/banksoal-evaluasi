@@ -22,7 +22,7 @@
       <p class="text-slate-500 text-sm mt-1">Silakan masuk untuk memulai ujian</p>
     </div>
 
-    <!-- Switch Login Mode (Siswa vs Admin/Guru) -->
+    <!-- Switch Login Mode -->
     <div class="flex bg-slate-100 p-1 rounded-xl mb-6">
       <button type="button" onclick="switchTab('SISWA')" id="tabSiswa" class="flex-1 py-2 text-sm font-semibold rounded-lg bg-white text-indigo-600 shadow-sm transition-all">
         Siswa
@@ -73,7 +73,7 @@
       </button>
     </form>
 
-    <!-- FORM 2: LOGIN STAFF (ADMIN/GURU EXISTING) -->
+    <!-- FORM 2: LOGIN STAFF -->
     <form id="staffForm" class="space-y-4 hidden">
       <div>
         <label class="block mb-1.5 text-sm font-medium text-slate-700">Username</label>
@@ -136,8 +136,7 @@
       try {
         const snapshot = await db.ref('active_packages').once('value');
         masterPaketAktif = snapshot.val() || {};
-        console.log("=== DATA FIREBASE BERHASIL DIUNDUH ===");
-        console.log(masterPaketAktif);
+        console.log("=== CORE DATA V7 BERHASIL DIUNDUH ===");
         
         kelasSelect.options[0].text = "-- Pilih Kelas --";
         kelasSelect.disabled = false;
@@ -175,41 +174,10 @@
 
       Object.keys(masterPaketAktif).forEach(idPaket => {
         const paket = masterPaketAktif[idPaket];
-        if (paket) {
-          // ALGORITMA VALUE SCROLLER DIJAMIN LOLOS SECARA ABSOLUT
-          let rawKelas = "";
-          let dbMapel = "";
-          let namaPaket = "";
-
-          // Fungsi rekursif untuk mencari nilai kelas & mapel di dalam properti nama apapun
-          function extractValuesFromObject(obj) {
-            Object.keys(obj).forEach(key => {
-              const val = obj[key];
-              if (typeof val === 'object' && val !== null) {
-                extractValuesFromObject(val);
-              } else {
-                // Deteksi pencocokan nilai kelas
-                const cleanVal = String(val).replace(/[^0-9]/g, "").trim();
-                if (cleanVal === cleanTargetKelas && key.toLowerCase().includes('kelas')) {
-                  rawKelas = val;
-                }
-                // Ambil data teks mapel & nama paket alternatif
-                if (key.toLowerCase().includes('mapel') || key.toLowerCase().includes('pelajaran')) {
-                  dbMapel = val;
-                }
-                if (key.toLowerCase().includes('nama') || key.toLowerCase().includes('paket')) {
-                  namaPaket = val;
-                }
-              }
-            });
-          }
-
-          extractValuesFromObject(paket);
-
-          // Fallback jika scanner kata kunci gagal, ambil teks dari root level secara paksa
-          if (!rawKelas) rawKelas = paket.kelas || paket.kelas_target || paket.Kelas || "";
-          if (!dbMapel) dbMapel = paket.mapel || paket.mata_pelajaran || paket.Mapel || "Ujian";
-          if (!namaPaket) namaPaket = paket.nama_paket || paket.namaPaket || "Paket Ujian";
+        if (paket && paket.konfigurasi) {
+          const rawKelas = paket.konfigurasi.kelas || paket.konfigurasi.kelas_target || "";
+          const dbMapel = paket.konfigurasi.mapel || paket.konfigurasi.mata_pelajaran || "Ujian";
+          const namaPaket = paket.konfigurasi.nama_paket || "Paket Ujian";
 
           const cleanDbKelas = String(rawKelas).replace(/[^0-9]/g, "").trim();
 
@@ -226,7 +194,7 @@
         btnSubmit.disabled = false;
       } else {
         const teksOpsiTerpilih = kelasSelect.options[kelasSelect.selectedIndex].text;
-        alert("Tidak ada paket ujian aktif untuk " + teksOpsiTerpilih + " saat ini.");
+        alert("VERSI BARU KODE: Tidak ada paket ujian aktif untuk " + teksOpsiTerpilih + " saat ini.");
       }
     }
 
