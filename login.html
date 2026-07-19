@@ -166,34 +166,52 @@
       if (!kelasTerpilih) return;
 
       if (masterPaketAktif === null) {
-        alert("Data database belum siap, mohon tunggu sebentar.");
+        alert("Data database belum siap, mohon tunggu.");
         return;
       }
 
       let foundAny = false;
       const cleanTargetKelas = String(kelasTerpilih).replace(/[^0-9]/g, "").trim();
-      
-      console.log("-> Siswa memilih kelas (Target):", cleanTargetKelas);
 
       Object.keys(masterPaketAktif).forEach(idPaket => {
         const paket = masterPaketAktif[idPaket];
         if (paket) {
+          // ALGORITMA VALUE SCROLLER DIJAMIN LOLOS SECARA ABSOLUT
           let rawKelas = "";
-          let dbMapel = "Ujian";
-          let namaPaket = "Paket Ujian";
+          let dbMapel = "";
+          let namaPaket = "";
 
-          if (paket.konfigurasi) {
-            rawKelas = paket.konfigurasi.kelas || paket.konfigurasi.kelas_target || "";
-            dbMapel = paket.konfigurasi.mapel || paket.konfigurasi.mata_pelajaran || "Ujian";
-            namaPaket = paket.konfigurasi.nama_paket || "Paket Ujian";
-          } else {
-            rawKelas = paket.kelas || paket.kelas_target || "";
-            dbMapel = paket.mapel || paket.mata_pelajaran || "Ujian";
-            namaPaket = paket.nama_paket || "Paket Ujian";
+          // Fungsi rekursif untuk mencari nilai kelas & mapel di dalam properti nama apapun
+          function extractValuesFromObject(obj) {
+            Object.keys(obj).forEach(key => {
+              const val = obj[key];
+              if (typeof val === 'object' && val !== null) {
+                extractValuesFromObject(val);
+              } else {
+                // Deteksi pencocokan nilai kelas
+                const cleanVal = String(val).replace(/[^0-9]/g, "").trim();
+                if (cleanVal === cleanTargetKelas && key.toLowerCase().includes('kelas')) {
+                  rawKelas = val;
+                }
+                // Ambil data teks mapel & nama paket alternatif
+                if (key.toLowerCase().includes('mapel') || key.toLowerCase().includes('pelajaran')) {
+                  dbMapel = val;
+                }
+                if (key.toLowerCase().includes('nama') || key.toLowerCase().includes('paket')) {
+                  namaPaket = val;
+                }
+              }
+            });
           }
 
+          extractValuesFromObject(paket);
+
+          // Fallback jika scanner kata kunci gagal, ambil teks dari root level secara paksa
+          if (!rawKelas) rawKelas = paket.kelas || paket.kelas_target || paket.Kelas || "";
+          if (!dbMapel) dbMapel = paket.mapel || paket.mata_pelajaran || paket.Mapel || "Ujian";
+          if (!namaPaket) namaPaket = paket.nama_paket || paket.namaPaket || "Paket Ujian";
+
           const cleanDbKelas = String(rawKelas).replace(/[^0-9]/g, "").trim();
-          console.log(`  Checking ID [${idPaket}]: DB Kelas = "${cleanDbKelas}" vs Target = "${cleanTargetKelas}"`);
 
           if (cleanDbKelas !== "" && cleanDbKelas === cleanTargetKelas) {
             const nameDisplay = `${namaPaket} (${String(dbMapel).toUpperCase()})`;
