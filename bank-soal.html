@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bank Soal | CBT-SAAS-GAS-GH</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-100 font-sans flex min-h-screen">
+
+  <!-- SIDEBAR (Sama dengan Dashboard) -->
+  <aside class="w-64 bg-indigo-900 text-white flex flex-col fixed h-full z-10">
+    <div class="p-5 text-xl font-bold tracking-wider border-b border-indigo-800 flex items-center gap-2">
+      <span class="p-2 bg-indigo-600 rounded-lg text-sm">GAS</span> CBT PREMIUM
+    </div>
+    <nav class="flex-1 p-4 space-y-2">
+      <a href="dashboard.html" class="flex items-center gap-3 px-4 py-3 hover:bg-indigo-800/50 rounded-xl text-indigo-200 hover:text-white transition-all">
+        <span>📊</span> Dashboard
+      </a>
+      <a href="bank-soal.html" class="flex items-center gap-3 px-4 py-3 bg-indigo-800 rounded-xl text-white font-medium transition-all">
+        <span>📚</span> Bank Soal
+      </a>
+      <a href="paket-ujian.html" class="flex items-center gap-3 px-4 py-3 hover:bg-indigo-800/50 rounded-xl text-indigo-200 hover:text-white transition-all">
+        <span>📝</span> Paket Ujian
+      </a>
+    </nav>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="flex-1 ml-64 p-8">
+    <header class="flex justify-between items-center mb-6">
+      <div>
+        <h1 class="text-2xl font-bold text-slate-800">Manajemen Bank Soal</h1>
+        <p class="text-sm text-slate-500 mt-1">Kelola, filter, dan buat master soal ujian di sini.</p>
+      </div>
+      <a href="tambah-soal.html" class="px-5 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-xl transition-colors shadow-sm">
+        ➕ Tambah Soal Baru
+      </a>
+    </header>
+
+    <!-- FILTER BAR -->
+    <section class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex flex-wrap gap-4 mb-6">
+      <input type="text" id="searchSoal" placeholder="Cari potongan teks soal..." 
+        class="flex-1 min-w-[200px] px-4 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+      <select id="filterMapel" class="px-4 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+        <option value="">Semua Mapel</option>
+      </select>
+      <select id="filterKelas" class="px-4 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+        <option value="">Semua Kelas</option>
+      </select>
+    </section>
+
+    <!-- DATA TABLE -->
+    <section class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="bg-slate-50 border-b border-slate-100 text-slate-600 text-xs font-semibold uppercase tracking-wider">
+            <th class="p-4">ID Soal</th>
+            <th class="p-4">Mapel / Kelas</th>
+            <th class="p-4 w-1/2">Konten Soal</th>
+            <th class="p-4 text-center">Kunci</th>
+            <th class="p-4 text-center">Bobot</th>
+          </tr>
+        </thead>
+        <tbody id="soalTableBody" class="text-slate-700 text-sm divide-y divide-slate-50">
+          <tr>
+            <td colspan="5" class="p-8 text-center text-slate-400">Sedang mengambil data soal dari Google Sheets...</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+  </main>
+
+  <script src="auth-service.js"></script>
+  <script>
+    AUTH_SERVICE.checkSession(['ADMIN', 'GURU']);
+    let allSoalData = [];
+
+    async function fetchSoal() {
+      try {
+        const res = await fetch(`${AUTH_SERVICE.GAS_API_URL}?action=getSoalList`);
+        const result = await res.json();
+        if (result.status === "SUCCESS") {
+          allSoalData = result.data;
+          populateFilterOptions();
+          renderTable(allSoalData);
+        }
+      } catch (err) {
+        document.getElementById('soalTableBody').innerHTML = `<tr><td colspan="5" class="p-8 text-center text-red-500">Gagal memuat data!</td></tr>`;
+      }
+    }
+
+    function populateFilterOptions() {
+      const mapels = [...new Set(allSoalData.map(s => s.mapel))];
+      const kelasList = [...new Set(allSoalData.map(s => s.kelas))];
+      
+      const mapelSelect = document.getElementById('filterMapel');
+      mapels.forEach(m => mapelSelect.innerHTML += `<option value="${m}">${m}</option>`);
+      
+      const kelasSelect = document.getElementById('filterKelas');
+      kelasList.forEach(k => kelasSelect.innerHTML += `<option value="${k}">${k}</option>`);
+    }
+
+    function renderTable(data) {
+      const tbody = document.getElementById('soalTableBody');
+      if (data.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-slate-400">Tidak ada data soal ditemukan.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = data.map(soal => `
+        <tr class="hover:bg-slate-50/80 transition-colors">
+          <td class="p-4 font-mono text-xs font-bold text-indigo-600">${soal.id_soal}</td>
+          <td class="p-4">
+            <span class="block font-medium text-slate-800">${soal.mapel}</span>
+            <span class="text-xs text-slate-400">Kelas ${soal.kelas}</span>
+          </td>
+          <td class="p-4 text-slate-600 truncate max-w-md">${soal.konten_soal}</td>
+          <td class="p-4 text-center"><span class="px-2 py-1 bg-emerald-50 text-emerald-700 rounded-md font-bold text-xs">${soal.kunci_jawaban}</span></td>
+          <td class="p-4 text-center font-medium">${soal.bobot}</td>
+        </tr>
+      `).join('');
+    }
+
+    // Event Listener untuk Live Filter di Frontend
+    document.querySelectorAll('#searchSoal, #filterMapel, #filterKelas').forEach(el => {
+      el.addEventListener('input', () => {
+        const search = document.getElementById('searchSoal').value.toLowerCase();
+        const mapel = document.getElementById('filterMapel').value;
+        const kelas = document.getElementById('filterKelas').value;
+
+        const filtered = allSoalData.filter(s => {
+          return (s.konten_soal.toLowerCase().includes(search) || s.id_soal.toLowerCase().includes(search)) &&
+                 (mapel === "" || s.mapel === mapel) &&
+                 (kelas === "" || s.kelas === kelas);
+        });
+        renderTable(filtered);
+      });
+    });
+
+    window.onload = fetchSoal;
+  </script>
+</body>
+</html>
