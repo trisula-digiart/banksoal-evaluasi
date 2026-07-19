@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Analitik Hasil | CBT-SAAS-GAS-GH</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-slate-100 font-sans flex min-h-screen">
+
+  <!-- SIDEBAR -->
+  <aside class="w-64 bg-indigo-900 text-white flex flex-col fixed h-full z-10">
+    <div class="p-5 text-xl font-bold border-b border-indigo-800 flex items-center gap-2">
+      <span class="p-2 bg-indigo-600 rounded-lg text-sm">GAS</span> CBT PREMIUM
+    </div>
+    <nav class="flex-1 p-4 space-y-2">
+      <a href="dashboard.html" class="flex items-center gap-3 px-4 py-3 hover:bg-indigo-800/50 rounded-xl text-indigo-200 hover:text-white transition-all"><span>📊</span> Dashboard</a>
+      <a href="bank-soal.html" class="flex items-center gap-3 px-4 py-3 hover:bg-indigo-800/50 rounded-xl text-indigo-200 hover:text-white transition-all"><span>📚</span> Bank Soal</a>
+      <a href="analitik.html" class="flex items-center gap-3 px-4 py-3 bg-indigo-800 rounded-xl text-white font-medium transition-all"><span>📈</span> Analitik Hasil</a>
+    </nav>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="flex-1 ml-64 p-8">
+    <header class="mb-6 flex justify-between items-center">
+      <div>
+        <h1 class="text-2xl font-bold text-slate-800">Analitik Hasil Ujian</h1>
+        <p class="text-sm text-slate-500 mt-1">Analisis nilai siswa berdasarkan paket ujian aktif.</p>
+      </div>
+      <!-- Input parameter ID Ujian -->
+      <div class="flex gap-2">
+        <input type="text" id="inputExamId" placeholder="Masukkan ID Ujian (e.g EXAM-...)" class="px-4 py-2 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+        <button onclick="loadAnalitik()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-xl text-sm transition-colors shadow-sm">Cari Data</button>
+      </div>
+    </header>
+
+    <!-- SUMMARY CARDS -->
+    <section class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+      <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100">
+        <p class="text-xs font-medium text-slate-400 uppercase">Rata-rata Nilai</p>
+        <h3 id="txtAvg" class="text-3xl font-bold text-slate-800 mt-1">-</h3>
+      </div>
+      <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100">
+        <p class="text-xs font-medium text-slate-400 uppercase">Nilai Tertinggi</p>
+        <h3 id="txtMax" class="text-3xl font-bold text-emerald-600 mt-1">-</h3>
+      </div>
+      <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100">
+        <p class="text-xs font-medium text-slate-400 uppercase">Nilai Terendah</p>
+        <h3 id="txtMin" class="text-3xl font-bold text-red-600 mt-1">-</h3>
+      </div>
+      <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100">
+        <p class="text-xs font-medium text-slate-400 uppercase">Jumlah Peserta</p>
+        <h3 id="txtPeserta" class="text-3xl font-bold text-indigo-600 mt-1">-</h3>
+      </div>
+    </section>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- Chart Distribusi -->
+      <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 lg:col-span-1">
+        <h3 class="text-sm font-bold text-slate-800 mb-4 uppercase tracking-wider">Distribusi Skor</h3>
+        <div class="h-64 flex justify-center items-center"><canvas id="barChartAnalitik"></canvas></div>
+      </div>
+      <!-- Tabel Hasil Siswa -->
+      <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 lg:col-span-2 overflow-hidden">
+        <h3 class="text-sm font-bold text-slate-800 mb-4 uppercase tracking-wider">Daftar Nilai Siswa</h3>
+        <div class="overflow-y-auto max-h-64">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr class="bg-slate-50 text-slate-600 font-semibold border-b border-slate-100 uppercase">
+                <th class="p-3">ID Siswa</th>
+                <th class="p-3 text-center">Benar</th>
+                <th class="p-3 text-center">Salah</th>
+                <th class="p-3 text-center">Nilai Akhir</th>
+              </tr>
+            </thead>
+            <tbody id="analitikTableBody" class="divide-y divide-slate-50">
+              <tr><td colspan="4" class="p-4 text-center text-slate-400">Silakan masukkan ID Ujian untuk memuat data.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="auth-service.js"></script>
+  <script>
+    AUTH_SERVICE.checkSession(['ADMIN', 'GURU']);
+    let currentChart = null;
+
+    async function loadAnalitik() {
+      const idUjian = document.getElementById('inputExamId').value.trim();
+      if (!idUjian) return;
+
+      try {
+        const res = await fetch(`${AUTH_SERVICE.GAS_API_URL}?action=getAnalitikData&id_ujian=${idUjian}`);
+        const result = await res.json();
+        
+        if (result.status === "SUCCESS" && result.data.summary.totalPeserta > 0) {
+          const { summary, dataSiswa } = result.data;
+          
+          document.getElementById('txtAvg').innerText = summary.rataRata;
+          document.getElementById('txtMax').innerText = summary.tertinggi;
+          document.getElementById('txtMin').innerText = summary.terendah;
+          document.getElementById('txtPeserta').innerText = summary.totalPeserta;
+
+          // Render Tabel
+          const tbody = document.getElementById('analitikTableBody');
+          tbody.innerHTML = dataSiswa.map(s => `
+            <tr class="hover:bg-slate-50 font-medium">
+              <td class="p-3 font-mono text-slate-700">${s.id_siswa}</td>
+              <td class="p-3 text-center text-emerald-600 font-bold">${s.total_benar}</td>
+              <td class="p-3 text-center text-red-500 font-bold">${s.total_salah}</td>
+              <td class="p-3 text-center"><span class="px-2 py-1 bg-indigo-50 text-indigo-700 font-black rounded">${s.nilai_akhir}</span></td>
+            </tr>
+          `).join('');
+
+          // Render Chart
+          const ctx = document.getElementById('barChartAnalitik').getContext('2d');
+          if (currentChart) currentChart.destroy();
+          
+          // Hitung range nilai buat chart distribusi
+          let under75 = dataSiswa.filter(s => parseFloat(s.nilai_akhir) < 75).length;
+          let over75 = dataSiswa.filter(s => parseFloat(s.nilai_akhir) >= 75).length;
+
+          currentChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+              labels: ['< 75 (Kritik)', '>= 75 (Lulus)'],
+              datasets: [{
+                label: 'Jumlah Siswa',
+                data: [under75, over75],
+                backgroundColor: ['#EF4444', '#10B981']
+              }]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
+          });
+        } else {
+          alert("Data nilai untuk ID Ujian tersebut kosong, bro!");
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+  </script>
+</body>
+</html>
