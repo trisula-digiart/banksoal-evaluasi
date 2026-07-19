@@ -146,6 +146,7 @@
       }
     }
 
+    // ARSITEKTUR v29.0: TARGETED CONDITIONAL GATE FILTER ENGINE
     function filterMapelDropdown() {
       const kelasSelect = document.getElementById('siswaKelas');
       const kelasTerpilih = kelasSelect.value ? kelasSelect.value.trim() : "";
@@ -165,31 +166,48 @@
       Object.keys(masterPaketAktif).forEach(idPaket => {
         const paket = masterPaketAktif[idPaket];
         if (paket) {
-          let namaMapelMurni = "";
-          let namaPaketMurni = "";
-
-          if (paket.konfigurasi) {
-            namaMapelMurni = paket.konfigurasi.mapel || paket.konfigurasi.mata_pelajaran || paket.konfigurasi.nama_mapel || "";
-            namaPaketMurni = paket.konfigurasi.nama_paket || paket.konfigurasi.judul || "";
-          }
           
-          if (!namaMapelMurni) namaMapelMurni = paket.mapel || paket.mata_pelajaran || paket.nama_mapel || "";
-          if (!namaPaketMurni) namaPaketMurni = paket.nama_paket || paket.judul || "";
-
-          if (!namaMapelMurni && paket.konfigurasi) {
-            Object.keys(paket.konfigurasi).forEach(k => {
-              if (k.toLowerCase().includes('mapel') || k.toLowerCase().includes('pelajaran')) {
-                namaMapelMurni = paket.konfigurasi[k];
-              }
-            });
+          // 1. Ambil Jalur Properti Kelas secara Akurat (Kompatibel dengan Blueprint index.html)
+          let kelasDbRaw = "";
+          if (paket.konfigurasi && paket.konfigurasi.kelas !== undefined) {
+            kelasDbRaw = String(paket.konfigurasi.kelas).trim();
+          } else if (paket.kelas !== undefined) {
+            kelasDbRaw = String(paket.kelas).trim();
           }
 
-          const mapelLabel = namaMapelMurni ? String(namaMapelMurni).toUpperCase() : "UJIAN AKTIF";
-          const paketLabel = namaPaketMurni ? ` - ${namaPaketMurni}` : "";
-          const textOpsiTampilan = `${mapelLabel}${paketLabel} (${idPaket})`;
+          // Ekstrak Angka Murni dari Properti Kelas Database (Contoh: "Kelas 3" -> "3")
+          const cleanDbKelas = kelasDbRaw.replace(/[^0-9]/g, "").trim();
 
-          mapelSelect.innerHTML += `<option value="${idPaket}">${textOpsiTampilan}</option>`;
-          foundAny = true;
+          // ==========================================================
+          // GERBANG VALIDASI KETAT: COCOKKAN KELAS SISWA VS KELAS DATABASE
+          // ==========================================================
+          if (cleanDbKelas !== "" && cleanDbKelas === cleanTargetKelas) {
+            let namaMapelMurni = "";
+            let namaPaketMurni = "";
+
+            if (paket.konfigurasi) {
+              namaMapelMurni = paket.konfigurasi.mapel || paket.konfigurasi.mata_pelajaran || paket.konfigurasi.nama_mapel || "";
+              namaPaketMurni = paket.konfigurasi.nama_paket || paket.konfigurasi.judul || "";
+            }
+            
+            if (!namaMapelMurni) namaMapelMurni = paket.mapel || paket.mata_pelajaran || paket.nama_mapel || "";
+            if (!namaPaketMurni) namaPaketMurni = paket.nama_paket || paket.judul || "";
+
+            if (!namaMapelMurni && paket.konfigurasi) {
+              Object.keys(paket.konfigurasi).forEach(k => {
+                if (k.toLowerCase().includes('mapel') || k.toLowerCase().includes('pelajaran')) {
+                  namaMapelMurni = paket.konfigurasi[k];
+                }
+              });
+            }
+
+            const mapelLabel = namaMapelMurni ? String(namaMapelMurni).toUpperCase() : "UJIAN AKTIF";
+            const paketLabel = namaPaketMurni ? ` - ${namaPaketMurni}` : "";
+            const textOpsiTampilan = `${mapelLabel}${paketLabel} (${idPaket})`;
+
+            mapelSelect.innerHTML += `<option value="${idPaket}">${textOpsiTampilan}</option>`;
+            foundAny = true;
+          }
         }
       });
 
@@ -197,7 +215,7 @@
         mapelSelect.disabled = false;
         btnSubmit.disabled = false;
       } else {
-        alert("Tidak ada paket ujian aktif di database saat ini.");
+        alert("Tidak ada paket ujian aktif untuk kelas " + kelasTerpilih + " saat ini.");
       }
     }
 
@@ -214,7 +232,7 @@
       window.location.href = `siswa-exam.html?id_ujian=${idUjian}`;
     });
 
-    // LISTENER 2: PATCH RECOVERY - SUBMIT LOGIN ADMIN / STAFF
+    // LISTENER 2: SUBMIT LOGIN ADMIN / STAFF (BERSIH & AMAN DARI TYPO SINTAKSIS)
     document.getElementById('staffForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const userEl = document.getElementById('username');
