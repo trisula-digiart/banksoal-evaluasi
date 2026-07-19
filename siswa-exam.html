@@ -6,7 +6,7 @@
   <title>Live Exam | CBT-SAAS-GAS-GH</title>
   <script src="https://cdn.tailwindcss.com"></script>
   
-  <!-- Firebase App & Realtime Database SDK (v9 Compat Mode biar gampang di-load via CDN) -->
+  <!-- Firebase App & Realtime Database SDK (v9 Compat Mode) -->
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 </head>
@@ -110,7 +110,6 @@
     }
 
     // Konfigurasi Kredensial Firebase Operasional Live Exam
-    // (Bisa disamakan dengan URL di config.gs agar sinkron)
     const firebaseConfig = {
       databaseURL: "https://banksoalonline-default-rtdb.asia-southeast1.firebasedatabase.app/"
     };
@@ -132,7 +131,7 @@
         const dataPaket = snapshot.val();
         if (!dataPaket) {
           alert("Akses Ujian Ditolak! Paket ujian tidak ditemukan atau belum aktif.");
-          window.location.href = "siswa-exam-list.html";
+          window.location.href = "login.html"; // PATCH: Dialihkan kembali ke gerbang login instansi
           return;
         }
 
@@ -151,7 +150,7 @@
             
             if (liveData.status_pengerjaan === "SUBMITTED") {
               alert("Ujian ini sudah selesai dikerjakan, bro!");
-              window.location.href = "siswa-exam-list.html";
+              window.location.href = `siswa-finish.html?id_ujian=${idUjian}`; // PATCH: Alihkan langsung ke kalkulator nilai riil
               return;
             }
           } else {
@@ -317,13 +316,13 @@
       }
     }
 
-    // 8. Kirim Status Selesai ke Firebase & Alihkan ke Modul 08 Kalkulator Nilai
+    // 8. Kirim Status Selesai ke Firebase & Alihkan ke Modul Kalkulator Nilai
     function autoSubmitUjian() {
       clearInterval(timerInterval);
       db.ref(`live_exams/${idUjian}/${session.uid}`).update({
         status_pengerjaan: "SUBMITTED"
       }).then(() => {
-        // Alihkan halaman ke Modul 08 untuk pemrosesan nilai final ke Sheets
+        // Alihkan halaman ke modul finish untuk pemrosesan nilai final ke Sheets
         window.location.href = `siswa-finish.html?id_ujian=${idUjian}`;
       });
     }
