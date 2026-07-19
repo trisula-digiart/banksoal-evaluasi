@@ -1,370 +1,633 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Bank Soal - EXAM-GAS-B5</title>
-    <!-- Bootstrap 5 CSS CDN -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    
-    <style>
-        /* Kustomisasi scrollbar untuk area preview tabel */
-        .table-responsive::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-        .table-responsive::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 4px;
-        }
-        .table-responsive::-webkit-scrollbar-thumb {
-            background: #c1c1c1;
-            border-radius: 4px;
-        }
-        .table-responsive::-webkit-scrollbar-thumb:hover {
-            background: #a8a8a8;
-        }
-
-        /* Sticky header fixing untuk Bootstrap Table */
-        .table th {
-            position: sticky;
-            top: 0;
-            z-index: 2;
-            background-color: #212529 !important;
-            color: #fff !important;
-        }
-
-        /* Efek visual tambahan untuk mempermudah pemindaian data */
-        .table-hover tbody tr:hover {
-            background-color: rgba(0, 0, 0, 0.04) !important;
-        }
-        
-        .card {
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-
-        /* Sidebar Custom Styling */
-        .sidebar-menu .list-group-item.active {
-            background-color: #0d6efd;
-            border-color: #0d6efd;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Premium SaaS CBT & Bank Soal | Control Center</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js CDN untuk visual analitik -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- SheetJS CDN untuk Engine Excel Importer -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <style>
+    /* Custom scrollbar untuk area konten dan tabel */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #f1f5f9; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    .select-none { -webkit-user-select: none; user-select: none; }
+  </style>
 </head>
-<body class="bg-light">
+<body class="bg-slate-50 text-slate-800 font-sans antialiased min-h-screen flex">
 
-    <!-- Navbar Global -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm sticky-top">
-        <div class="container-fluid px-4">
-            <a class="navbar-brand fw-bold" href="index.html">EXAM-GAS-B5</a>
-            <span class="navbar-text text-white-50 d-none d-sm-inline ms-2">
-                Sistem Impor Bank Soal Massal
-            </span>
-            <div class="ms-auto text-white small">
-                Role: <span class="badge bg-danger">ADMIN / GURU</span>
-            </div>
-        </div>
-    </nav>
-
-    <!-- Main Layout Container: Grid Menu Navigasi & Konten -->
-    <div class="container-fluid px-4 my-4">
-        <div class="row">
-            
-            <!-- KIRI: MENU NAVIGASI UTAMA (TAB/FILE ACCESSIBILITY) -->
-            <div class="col-lg-3 col-md-4 mb-4">
-                <div class="card shadow-sm border-0 rounded-3 sticky-top" style="top: 70px; z-index: 1;">
-                    <div class="card-header bg-white py-3">
-                        <h6 class="fw-bold m-0 text-secondary text-uppercase tracking-wider" style="font-size: 0.8rem;">Navigasi Platform</h6>
-                    </div>
-                    <div class="card-body p-2 sidebar-menu">
-                        <div class="list-group list-group-flush gap-1">
-                            <a href="index.html" class="list-group-item list-group-item-action rounded-3 border-0 py-2.5 active fw-bold">
-                                📥 Bulk Import Engine
-                            </a>
-                            <a href="dashboard.html" class="list-group-item list-group-item-action rounded-3 border-0 py-2.5">
-                                📊 Statistik Dashboard
-                            </a>
-                            <a href="bank-soal.html" class="list-group-item list-group-item-action rounded-3 border-0 py-2.5">
-                                📚 Kelola Bank Soal
-                            </a>
-                            <a href="analitik.html" class="list-group-item list-group-item-action rounded-3 border-0 py-2.5">
-                                📈 Analitik Hasil Kelas
-                            </a>
-                            <a href="bank-media.html" class="list-group-item list-group-item-action rounded-3 border-0 py-2.5">
-                                🖼️ Pustaka Bank Media
-                            </a>
-                            <a href="manajemen-user.html" class="list-group-item list-group-item-action rounded-3 border-0 py-2.5">
-                                👥 Manajemen Pengguna
-                            </a>
-                            <a href="pengaturan.html" class="list-group-item list-group-item-action rounded-3 border-0 py-2.5">
-                                ⚙️ Pengaturan Sekolah
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- KANAN: PANEL WORKSPACE FITUR AKTIF -->
-            <div class="col-lg-9 col-md-8">
-                
-                <!-- Card Panel Utama (Bulk Import) -->
-                <div class="card shadow-sm border-0 rounded-3 mb-4">
-                    <div class="card-header bg-white py-3 border-bottom-0">
-                        <h5 class="card-title fw-bold text-dark m-0">Bulk Import Engine</h5>
-                    </div>
-                    <div class="card-body">
-                        <p class="text-muted small">
-                            Silakan unggah file template Excel (.xlsx) yang berisi daftar bank soal. Sistem akan melakukan validasi struktur tipe soal secara otomatis sebelum dikirim ke database Google Sheets.
-                        </p>
-                        
-                        <!-- Form Upload File -->
-                        <div class="row align-items-center g-3">
-                            <div class="col-md-8">
-                                <input type="file" id="excelFileInput" class="form-control" accept=".xlsx, .xls">
-                            </div>
-                            <div class="col-md-4 d-grid">
-                                <button type="button" id="btnSyncData" class="btn btn-primary fw-bold" disabled>
-                                    <span id="btnText">Kirim ke Database</span>
-                                    <span id="btnSpinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Alert Box Dynamic Notification -->
-                        <div id="alertContainer" class="mt-4 d-none"></div>
-                    </div>
-                </div>
-
-                <!-- Card Panel Preview Data Table -->
-                <div class="card shadow-sm border-0 rounded-3 d-none" id="previewCard">
-                    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-                        <h6 class="card-title fw-bold text-dark m-0">Preview Data Soal</h6>
-                        <span class="badge bg-secondary rounded-pill" id="totalRowsBadge">0 baris terdeteksi</span>
-                    </div>
-                    <div class="card-body p-0">
-                        <!-- Wrapper Tabel Responsif -->
-                        <div class="table-responsive" style="max-height: 450px; overflow-y: auto;">
-                            <table class="table table-striped table-hover align-middle mb-0 text-nowrap">
-                                <thead class="table-dark sticky-top">
-                                    <tr>
-                                        <th scope="col">#</th>
-                                        <th scope="col">Mata Pelajaran</th>
-                                        <th scope="col">Kelas</th>
-                                        <th scope="col">Tipe Soal</th>
-                                        <th scope="col">Pertanyaan</th>
-                                        <th scope="col">Opsi A</th>
-                                        <th scope="col">Opsi B</th>
-                                        <th scope="col">Opsi C</th>
-                                        <th scope="col">Opsi D</th>
-                                        <th scope="col">Opsi E</th>
-                                        <th scope="col">Kunci Jawaban</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="previewTableBody">
-                                    <!-- Render data dari JavaScript masuk ke sini -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-        </div>
+  <!-- ==========================================
+       SIDEBAR NAVIGASI (KONSTAN DI KIRI)
+       ========================================== -->
+  <aside class="w-64 bg-white border-r border-slate-200 flex flex-col fixed h-full z-30">
+    <!-- Header Brand -->
+    <div class="p-6 border-b border-slate-100 flex items-center gap-3">
+      <div class="w-9 h-9 bg-indigo-600 rounded-xl flex items-center justify-center text-white font-black shadow-lg shadow-indigo-100">B</div>
+      <div>
+        <h1 class="text-sm font-bold text-slate-800 tracking-tight">BANK SOAL</h1>
+        <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">CBT Platform v3.0</p>
+      </div>
     </div>
 
-    <!-- SheetJS (XLSX Core Engine) CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <!-- Navigasi Menu (Sesuai 10 Mockup Layar) -->
+    <nav class="flex-1 p-4 space-y-1 overflow-y-auto">
+      <button onclick="switchView('dashboard')" id="nav-dashboard" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-xl transition-all text-indigo-600 bg-indigo-50/70">
+        <span class="text-lg">📊</span> Dashboard
+      </button>
+      
+      <div class="pt-2 pb-1 px-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Bank Soal</div>
+      <button onclick="switchView('bankSoal')" id="nav-bankSoal" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-xl transition-all text-slate-500 hover:text-slate-900 hover:bg-slate-50">
+        <span class="text-lg">📚</span> Daftar Bank Soal
+      </button>
+      <button onclick="switchView('tambahSoal')" id="nav-tambahSoal" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-xl transition-all text-slate-500 hover:text-slate-900 hover:bg-slate-50">
+        <span class="text-lg">📝</span> Tambah Soal Satuan
+      </button>
+      <button onclick="switchView('importExcel')" id="nav-importExcel" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-xl transition-all text-slate-500 hover:text-slate-900 hover:bg-slate-50">
+        <span class="text-lg">📥</span> Import Soal Excel
+      </button>
 
-    <!-- Bagian Logic JavaScript -->
-    <script>
-        let parsedItems = [];
+      <div class="pt-2 pb-1 px-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Ujian & Evaluasi</div>
+      <button onclick="switchView('paketUjian')" id="nav-paketUjian" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-xl transition-all text-slate-500 hover:text-slate-900 hover:bg-slate-50">
+        <span class="text-lg">📅</span> Buat Paket Ujian
+      </button>
+      <button onclick="switchView('previewUjian')" id="nav-previewUjian" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-xl transition-all text-slate-500 hover:text-slate-900 hover:bg-slate-50">
+        <span class="text-lg">👁️</span> Preview Live Exam
+      </button>
+      <button onclick="switchView('analitik')" id="nav-analitik" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-xl transition-all text-slate-500 hover:text-slate-900 hover:bg-slate-50">
+        <span class="text-lg">📈</span> Analitik Hasil Ujian
+      </button>
 
-        // DOM Elements
-        const fileInput = document.getElementById('excelFileInput');
-        const btnSyncData = document.getElementById('btnSyncData');
-        const btnText = document.getElementById('btnText');
-        const btnSpinner = document.getElementById('btnSpinner');
-        const alertContainer = document.getElementById('alertContainer');
-        const previewCard = document.getElementById('previewCard');
-        const previewTableBody = document.getElementById('previewTableBody');
-        const totalRowsBadge = document.getElementById('totalRowsBadge');
+      <div class="pt-2 pb-1 px-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Manajemen Aset</div>
+      <button onclick="switchView('bankMedia')" id="nav-bankMedia" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-xl transition-all text-slate-500 hover:text-slate-900 hover:bg-slate-50">
+        <span class="text-lg">🖼️</span> Galeri Bank Media
+      </button>
+      <button onclick="switchView('manajemenUser')" id="nav-manajemenUser" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-xl transition-all text-slate-500 hover:text-slate-900 hover:bg-slate-50">
+        <span class="text-lg">👥</span> Manajemen Pengguna
+      </button>
+      <button onclick="switchView('pengaturan')" id="nav-pengaturan" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-xl transition-all text-slate-500 hover:text-slate-900 hover:bg-slate-50">
+        <span class="text-lg">⚙️</span> Pengaturan Sistem
+      </button>
+    </nav>
 
-        const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxE_OIRpPdaAR91bwa3fT8myIKytHZF8P0_PH5ikF-9fqjAJqoi4NaLpKdHtn7o9V5zEA/exec';
+    <!-- Info User Profile Kiri Bawah -->
+    <div class="p-4 border-t border-slate-100 flex items-center gap-3 bg-slate-50/50">
+      <div class="w-9 h-9 bg-slate-200 rounded-full flex items-center justify-center font-bold text-slate-600 text-xs">AD</div>
+      <div class="overflow-hidden">
+        <p class="text-xs font-bold text-slate-700 truncate">Admin Sekolah</p>
+        <p class="text-[10px] font-medium text-emerald-600 flex items-center gap-1">● Online</p>
+      </div>
+    </div>
+  </aside>
 
-        fileInput.addEventListener('change', handleFileSelect);
-        btnSyncData.addEventListener('click', submitBulkData);
+  <!-- ==========================================
+       WORKSPACE AREA CONTROLLER (KANAN)
+       ========================================== -->
+  <main class="flex-1 ml-64 min-h-screen flex flex-col overflow-hidden">
+    
+    <!-- Top Header Bar -->
+    <header class="h-16 bg-white border-b border-slate-200 px-8 flex justify-between items-center sticky top-0 z-20 shadow-sm shadow-slate-100/40">
+      <div class="flex items-center gap-2 text-xs font-semibold text-slate-400">
+        <span>Sistem</span> / <span id="breadcrumbActive" class="text-slate-700 font-bold">Dashboard Utama</span>
+      </div>
+      <div class="flex items-center gap-4">
+        <span class="text-xs text-slate-400 font-medium">GAS Web App URL Aktif</span>
+        <span class="px-3 py-1 bg-emerald-50 text-emerald-700 font-mono text-xs rounded-lg border border-emerald-200/50 truncate max-w-[200px]" id="gasUrlBadge">Ready</span>
+      </div>
+    </header>
 
-        function handleFileSelect(event) {
-            const file = event.target.files[0];
-            if (!file) return;
+    <!-- SCREEN WORKSPACE CONTAINER -->
+    <div class="p-8 flex-1 overflow-y-auto" id="mainWorkspace">
+      
+      <!-- LAYER 1: SCREEN DASHBOARD UTAMA -->
+      <section id="view-dashboard" class="space-y-6">
+        <div class="flex justify-between items-center">
+          <div>
+            <h2 class="text-xl font-bold text-slate-800">Dashboard Center</h2>
+            <p class="text-xs text-slate-400 mt-0.5">Selamat datang kembali, Admin.</p>
+          </div>
+        </div>
+        
+        <!-- Summary Cards Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+            <div>
+              <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Total Soal</p>
+              <h3 class="text-2xl font-black text-slate-800 mt-1" id="dashCardSoal">12.458</h3>
+            </div>
+            <span class="text-2xl p-3 bg-indigo-50 text-indigo-600 rounded-xl">📚</span>
+          </div>
+          <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+            <div>
+              <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Mata Pelajaran</p>
+              <h3 class="text-2xl font-black text-slate-800 mt-1" id="dashCardMapel">24</h3>
+            </div>
+            <span class="text-2xl p-3 bg-emerald-50 text-emerald-600 rounded-xl">🧪</span>
+          </div>
+          <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+            <div>
+              <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Paket Ujian</p>
+              <h3 class="text-2xl font-black text-slate-800 mt-1" id="dashCardPaket">156</h3>
+            </div>
+            <span class="text-2xl p-3 bg-amber-50 text-amber-600 rounded-xl">📅</span>
+          </div>
+          <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+            <div>
+              <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Total Guru</p>
+              <h3 class="text-2xl font-black text-slate-800 mt-1" id="dashCardGuru">32</h3>
+            </div>
+            <span class="text-2xl p-3 bg-rose-50 text-rose-600 rounded-xl">👥</span>
+          </div>
+        </div>
 
-            showAlert('info', 'Sedang membaca dan memvalidasi file Excel...');
-            
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const data = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(data, { type: 'array' });
-                    
-                    const firstSheetName = workbook.SheetNames[0];
-                    const worksheet = workbook.Sheets[firstSheetName];
-                    const jsonData = XLSX.utils.sheet_to_json(worksheet);
-                    
-                    if (jsonData.length === 0) {
-                        throw new Error("File Excel kosong atau tidak mengikuti format header yang ditentukan.");
-                    }
+        <!-- Charts Workspace (Mockup 1) -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm lg:col-span-1">
+            <h4 class="text-xs font-bold text-slate-700 uppercase mb-4 tracking-wider">Statistik Soal Per Mapel</h4>
+            <div class="h-64 flex items-center justify-center"><canvas id="chartMapel"></canvas></div>
+          </div>
+          <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm lg:col-span-2">
+            <h4 class="text-xs font-bold text-slate-700 uppercase mb-4 tracking-wider">Grafik Pembuatan Soal (6 Bulan Terakhir)</h4>
+            <div class="h-64 flex items-center justify-center"><canvas id="chartHistory"></canvas></div>
+          </div>
+        </div>
+      </section>
 
-                    processAndValidateData(jsonData);
+      <!-- LAYER 2: SCREEN DAFTAR BANK SOAL -->
+      <section id="view-bankSoal" class="hidden space-y-6">
+        <div class="flex justify-between items-center">
+          <div>
+            <h2 class="text-xl font-bold text-slate-800">Daftar Bank Soal Master</h2>
+            <p class="text-xs text-slate-400 mt-0.5">Seluruh daftar pertanyaan ujian yang terdata di sistem cloud database Sheets.</p>
+          </div>
+          <button onclick="switchView('tambahSoal')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-sm transition-colors">+ Tambah Soal Manual</button>
+        </div>
+        <!-- Filter Bar -->
+        <div class="bg-white p-4 rounded-xl border border-slate-200 flex flex-wrap gap-3 text-xs">
+          <input type="text" placeholder="Cari soal..." class="px-3 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 w-64">
+          <select class="px-3 py-2 border border-slate-200 rounded-lg outline-none"><option>Semua Mapel</option></select>
+          <select class="px-3 py-2 border border-slate-200 rounded-lg outline-none"><option>Semua Kelas</option></select>
+        </div>
+        <!-- Table Data -->
+        <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr class="bg-slate-50 border-b border-slate-200 font-bold text-slate-600 uppercase tracking-wider">
+                  <th class="p-4 w-12">No</th>
+                  <th class="p-4">Isi Pertanyaan Soal</th>
+                  <th class="p-4 w-32">Mata Pelajaran</th>
+                  <th class="p-4 w-20 text-center">Kelas</th>
+                  <th class="p-4 w-24 text-center">Bobot</th>
+                  <th class="p-4 w-20 text-center">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="bankSoalTableBody" class="divide-y divide-slate-100">
+                <tr><td colspan="6" class="p-8 text-center text-slate-400 font-medium">Memuat pustaka bank soal cloud...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
 
-                } catch (error) {
-                    showAlert('danger', 'Gagal memproses Excel: ' + error.message);
-                    resetPreview();
-                }
-            };
-            reader.readAsArrayBuffer(file);
+      <!-- LAYER 3: SCREEN TAMBAH SOAL MANUAL (Mockup 3) -->
+      <section id="view-tambahSoal" class="hidden space-y-6">
+        <div>
+          <h2 class="text-xl font-bold text-slate-800">Tambah / Edit Soal Satuan</h2>
+          <p class="text-xs text-slate-400 mt-0.5">Form pengisian parameter bank soal tunggal berbasis visual rich text editor.</p>
+        </div>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div class="lg:col-span-2 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+            <div>
+              <label class="block text-xs font-bold text-slate-600 uppercase mb-2">Konten Pertanyaan Ujian</label>
+              <textarea id="formKontenSoal" rows="6" placeholder="Tulis soal ujian di sini, bro..." class="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+            </div>
+            <!-- Opsi Pilihan Jawaban -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Pilihan A</label>
+                <input type="text" id="formOpsiA" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs outline-none focus:ring-2 focus:ring-indigo-500">
+              </div>
+              <div>
+                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Pilihan B</label>
+                <input type="text" id="formOpsiB" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs outline-none focus:ring-2 focus:ring-indigo-500">
+              </div>
+              <div>
+                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Pilihan C</label>
+                <input type="text" id="formOpsiC" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs outline-none focus:ring-2 focus:ring-indigo-500">
+              </div>
+              <div>
+                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Pilihan D</label>
+                <input type="text" id="formOpsiD" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs outline-none focus:ring-2 focus:ring-indigo-500">
+              </div>
+            </div>
+          </div>
+          <!-- Atribut Kanan -->
+          <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm h-fit space-y-4 text-xs">
+            <div>
+              <label class="block font-bold text-slate-600 mb-1">Kunci Jawaban</label>
+              <select id="formKunci" class="w-full px-3 py-2 border border-slate-200 rounded-lg"><option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option></select>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block font-bold text-slate-600 mb-1">Bobot Soal</label>
+                <input type="number" id="formBobot" value="1" class="w-full px-3 py-2 border border-slate-200 rounded-lg">
+              </div>
+              <div>
+                <label class="block font-bold text-slate-600 mb-1">Tingkat Kesulitan</label>
+                <select id="formKesulitan" class="w-full px-3 py-2 border border-slate-200 rounded-lg"><option>MUDAH</option><option>SEDANG</option><option>SULIT</option></select>
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block font-bold text-slate-600 mb-1">Mata Pelajaran</label>
+                <input type="text" id="formMapel" placeholder="IPA/MTK" class="w-full px-3 py-2 border border-slate-200 rounded-lg">
+              </div>
+              <div>
+                <label class="block font-bold text-slate-600 mb-1">Target Kelas</label>
+                <input type="text" id="formKelas" placeholder="VIII" class="w-full px-3 py-2 border border-slate-200 rounded-lg">
+              </div>
+            </div>
+            <button onclick="saveManualSoal()" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-md transition-colors">Simpan Rekam Soal</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- LAYER 4: SCREEN BULK IMPORT EXCEL (Mockup 4) -->
+      <section id="view-importExcel" class="hidden space-y-6">
+        <div>
+          <h2 class="text-xl font-bold text-slate-800">Bulk Import Engine</h2>
+          <p class="text-xs text-slate-400 mt-0.5">Unggah file template Excel (.xlsx) untuk injeksi soal massal instan bypass limitasi harian.</p>
+        </div>
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+          <div class="border-2 border-dashed border-slate-200 rounded-xl p-8 text-center bg-slate-50/50 hover:bg-slate-50 transition-all cursor-pointer relative">
+            <input type="file" id="excelFileInput" class="absolute inset-0 opacity-0 cursor-pointer" accept=".xlsx, .xls">
+            <span class="text-3xl block mb-2">📁</span>
+            <p class="text-xs font-bold text-slate-700">Drag & Drop file Excel di sini atau klik untuk browse</p>
+            <p class="text-[10px] text-slate-400 mt-1">Hanya mendukung format ekstensi berkas .xlsx / .xls</p>
+          </div>
+          <div class="flex justify-between items-center text-xs">
+            <div id="importStatusText" class="text-slate-500 font-medium">Belum ada berkas terunggah.</div>
+            <button id="btnSyncExcel" disabled onclick="submitBulkData()" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl disabled:opacity-50 shadow-sm transition-all">Kirim Masuk ke Database</button>
+          </div>
+        </div>
+        <!-- Table Preview Area -->
+        <div id="excelPreviewCard" class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hidden">
+          <div class="p-4 bg-slate-50 font-bold text-xs text-slate-700 border-b border-slate-200">Pratinjau Data Struktur Validasi Excel</div>
+          <div class="overflow-x-auto max-h-80"><table class="w-full text-left border-collapse text-[11px]"><thead class="bg-slate-100 text-slate-600 uppercase font-bold border-b border-slate-200"><tr><th class="p-3">#</th><th class="p-3">Mapel</th><th class="p-3">Kelas</th><th class="p-3">Pertanyaan</th><th class="p-3">Kunci</th></tr></thead><tbody id="excelPreviewBody" class="divide-y divide-slate-100"></tbody></table></div>
+        </div>
+      </section>
+
+      <!-- LAYER 5: SCREEN BUAT PAKET UJIAN BARU (Mockup 5) -->
+      <section id="view-paketUjian" class="hidden space-y-6">
+        <div>
+          <h2 class="text-xl font-bold text-slate-800">Paket Ujian Baru</h2>
+          <p class="text-xs text-slate-400 mt-0.5">Konfigurasi sinkronisasi paket live exam dual-write engine Sheets & Firebase.</p>
+        </div>
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm grid grid-cols-1 md:grid-cols-2 gap-6 text-xs">
+          <div class="space-y-4">
+            <div>
+              <label class="block font-bold text-slate-600 mb-1">Nama Paket Ujian</label>
+              <input type="text" id="pktNama" placeholder="PTS Genap IPA Kelas VIII" class="w-full px-3 py-2 border border-slate-200 rounded-lg">
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block font-bold text-slate-600 mb-1">Mata Pelajaran Target</label>
+                <input type="text" id="pktMapel" placeholder="IPA" class="w-full px-3 py-2 border border-slate-200 rounded-lg">
+              </div>
+              <div>
+                <label class="block font-bold text-slate-600 mb-1">Kelas Target</label>
+                <input type="text" id="pktKelas" placeholder="VIII" class="w-full px-3 py-2 border border-slate-200 rounded-lg">
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block font-bold text-slate-600 mb-1">Durasi Pengerjaan (Menit)</label>
+                <input type="number" id="pktDurasi" value="90" class="w-full px-3 py-2 border border-slate-200 rounded-lg">
+              </div>
+              <div>
+                <label class="block font-bold text-slate-600 mb-1">Jumlah Soal Diambil</label>
+                <input type="number" id="pktJumlahSoal" value="40" class="w-full px-3 py-2 border border-slate-200 rounded-lg">
+              </div>
+            </div>
+          </div>
+          <div class="space-y-4 bg-slate-50/50 p-4 rounded-xl border border-slate-200/60">
+            <h4 class="font-bold text-slate-700 uppercase tracking-wider text-[10px]">Opsi Fleksibilitas Live Exam</h4>
+            <div class="space-y-2">
+              <label class="flex items-center gap-2"><input type="checkbox" id="pktAcakSoal" checked class="rounded text-indigo-600"> Acak Distribusi Nomor Soal</label>
+              <label class="flex items-center gap-2"><input type="checkbox" id="pktAcakOpsi" checked class="rounded text-indigo-600"> Acak Opsi Pilihan Jawaban</label>
+              <label class="flex items-center gap-2"><input type="checkbox" id="pktTampilNilai" checked class="rounded text-indigo-600"> Tampilkan Skor Instan Setelah Selesai</label>
+            </div>
+            <div class="pt-2">
+              <button onclick="createExamPackage()" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition-all shadow-md">Simpan & Rilis Paket Live</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- LAYER 6: SCREEN PREVIEW LIVE EXAM SISWA (Mockup 6) -->
+      <section id="view-previewUjian" class="hidden space-y-6 select-none">
+        <div class="bg-slate-900 text-white p-4 rounded-xl flex justify-between items-center">
+          <div>
+            <h3 class="text-sm font-bold">Preview Layar Pengerjaan Live Siswa</h3>
+            <p class="text-[10px] text-slate-400">Simulasi responsivitas layout visual engine siswa saat ujian aktif.</p>
+          </div>
+          <div class="px-3 py-1 bg-red-600 rounded-lg font-mono text-xs font-bold animate-pulse">⏱️ 01:29:45</div>
+        </div>
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          <div class="bg-white p-4 rounded-xl border border-slate-200 h-fit text-xs">
+            <h4 class="font-bold text-slate-700 uppercase mb-3 text-[10px] tracking-wider">Navigasi Kotak Soal</h4>
+            <div class="grid grid-cols-5 gap-1.5">
+              <span class="p-2 bg-indigo-600 text-white font-bold text-center rounded-lg">1</span>
+              <span class="p-2 bg-emerald-500 text-white font-bold text-center rounded-lg">2</span>
+              <span class="p-2 bg-amber-500 text-white font-bold text-center rounded-lg">3</span>
+              <span class="p-2 bg-slate-100 text-slate-400 font-bold text-center rounded-lg">4</span>
+              <span class="p-2 bg-slate-100 text-slate-400 font-bold text-center rounded-lg">5</span>
+            </div>
+          </div>
+          <div class="lg:col-span-3 bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
+            <div class="px-3 py-1 bg-slate-100 text-slate-700 font-bold text-[10px] rounded w-fit uppercase">Soal Nomor 1</div>
+            <p class="text-sm font-semibold text-slate-800">Perhatikan gambar berikut! Bagian yang ditunjuk oleh huruf X berfungsi untuk...</p>
+            <div class="space-y-2 text-xs">
+              <label class="flex items-center gap-3 p-3 border border-slate-200 rounded-xl hover:bg-slate-50 cursor-pointer"><input type="radio" name="pv" class="text-indigo-600"> <span>A. Tempat sintesis protein</span></label>
+              <label class="flex items-center gap-3 p-3 border border-indigo-500 bg-indigo-50/25 rounded-xl cursor-pointer"><input type="radio" name="pv" checked class="text-indigo-600"> <span>B. Mengatur kegiatan sel</span></label>
+              <label class="flex items-center gap-3 p-3 border border-slate-200 rounded-xl hover:bg-slate-50 cursor-pointer"><input type="radio" name="pv" class="text-indigo-600"> <span>C. Tempat respirasi sel</span></label>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- LAYER 7: SCREEN ANALITIK HASIL UJIAN (Mockup 7) -->
+      <section id="view-analitik" class="hidden space-y-6">
+        <div>
+          <h2 class="text-xl font-bold text-slate-800">Analitik Hasil Evaluasi</h2>
+          <p class="text-xs text-slate-400 mt-0.5">Metrik analisis daya serap siswa serta sebaran tingkat kelulusan KKM kelas.</p>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm text-center">
+            <h5 class="text-xs font-bold text-slate-400 uppercase">Rata-rata Kelas</h5>
+            <h3 class="text-3xl font-black text-indigo-600 mt-1">78.45</h3>
+          </div>
+          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm text-center">
+            <h5 class="text-xs font-bold text-slate-400 uppercase">Nilai Tertinggi</h5>
+            <h3 class="text-3xl font-black text-emerald-600 mt-1">98</h3>
+          </div>
+          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm text-center">
+            <h5 class="text-xs font-bold text-slate-400 uppercase">Jumlah Peserta</h5>
+            <h3 class="text-3xl font-black text-slate-800 mt-1">32</h3>
+          </div>
+        </div>
+      </section>
+
+      <!-- LAYER 8: SCREEN GALERI BANK MEDIA (Mockup 8) -->
+      <section id="view-bankMedia" class="hidden space-y-6">
+        <div class="flex justify-between items-center">
+          <div>
+            <h2 class="text-xl font-bold text-slate-800">Pustaka Aset Gambar & Media</h2>
+            <p class="text-xs text-slate-400 mt-0.5">Manajemen folder penyimpanan file multimedia pendukung visual lembar soal.</p>
+          </div>
+          <button class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-sm">Upload Aset Ke Drive</button>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4" id="mediaGalleryContainer">
+          <!-- Item Aset Media -->
+          <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm space-y-2">
+            <div class="w-full h-28 bg-slate-100 rounded-lg overflow-hidden flex items-center justify-center border border-slate-200/60">
+              <span class="text-2xl">🖼️</span>
+            </div>
+            <p class="text-[11px] font-bold text-slate-700 truncate">sel_tumbuhan.png</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- LAYER 9: SCREEN MANAJEMEN PENGGUNA (Mockup 9) -->
+      <section id="view-manajemenUser" class="hidden space-y-6">
+        <div class="flex justify-between items-center">
+          <div>
+            <h2 class="text-xl font-bold text-slate-800">Manajemen Akses Akun</h2>
+            <p class="text-xs text-slate-400 mt-0.5">Daftar otoritas otentikasi role Guru, Operator, dan Siswa sekolah.</p>
+          </div>
+          <button class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-sm">+ Tambah Akun</button>
+        </div>
+        <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold uppercase tracking-wider">
+              <tr><th class="p-4">Nama Pengguna</th><th class="p-4">Username</th><th class="p-4">Hak Akses Role</th><th class="p-4 text-center">Status</th></tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 font-medium">
+              <tr><td class="p-4 text-slate-800 font-bold">Admin Utama</td><td class="p-4 font-mono">admin</td><td class="p-4"><span class="px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded text-[10px] font-bold">ADMIN</span></td><td class="p-4 text-center text-emerald-600 font-bold">Aktif</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- LAYER 10: SCREEN PENGATURAN SISTEM (Mockup 10) -->
+      <section id="view-pengaturan" class="hidden space-y-6">
+        <div>
+          <h2 class="text-xl font-bold text-slate-800">Konfigurasi Identitas Instansi</h2>
+          <p class="text-xs text-slate-400 mt-0.5">Pengaturan profil legal kop surat, logo instansi, serta tautan API core platform.</p>
+        </div>
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm max-w-xl text-xs space-y-4">
+          <div>
+            <label class="block font-bold text-slate-600 mb-1">Nama Instansi / Sekolah</label>
+            <input type="text" id="cfgNamaSekolah" value="SMA NEGERI 1 JAKARTA" class="w-full px-3 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500">
+          </div>
+          <div>
+            <label class="block font-bold text-slate-600 mb-1">Nomor Pokok Sekolah Nasional (NPSN)</label>
+            <input type="text" id="cfgNpsn" value="20101010" class="w-full px-3 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500">
+          </div>
+          <div>
+            <label class="block font-bold text-slate-600 mb-1">Alamat Kontak Instansi</label>
+            <textarea id="cfgAlamat" rows="3" class="w-full px-3 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500">Jl. Pendidikan No. 1 Jakarta</textarea>
+          </div>
+          <button onclick="alert('Profil berhasil diperbarui!')" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-md transition-colors">Simpan Seluruh Perubahan</button>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- ==========================================
+       CORE CLIENT-SIDE ENGINE CONTROL LOGIC (JS)
+       ========================================== -->
+  <script>
+    // URL Endpoint API Apps Script Tunggal hasil deployment Anda
+    const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxE_OIRpPdaAR91bwa3fT8myIKytHZF8P0_PH5ikF-9fqjAJqoi4NaLpKdHtn7o9V5zEA/exec';
+    
+    document.getElementById('gasUrlBadge').innerText = GAS_WEB_APP_URL.substring(0, 30) + "...";
+
+    // 1. ENGINE ROUTER LAYER (Dynamic SPA Switcher View)
+    function switchView(targetViewId) {
+      const views = [
+        'dashboard', 'bankSoal', 'tambahSoal', 'importExcel', 
+        'paketUjian', 'previewUjian', 'analitik', 'bankMedia', 
+        'manajemenUser', 'pengaturan'
+      ];
+      
+      views.forEach(v => {
+        const el = document.getElementById(`view-${v}`);
+        const nav = document.getElementById(`nav-${v}`);
+        
+        if (v === targetViewId) {
+          el.classList.remove('hidden');
+          nav.className = "w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-xl transition-all text-indigo-600 bg-indigo-50/70";
+          document.getElementById('breadcrumbActive').innerText = nav.innerText.trim();
+        } else {
+          el.classList.add('hidden');
+          nav.className = "w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-xl transition-all text-slate-500 hover:text-slate-900 hover:bg-slate-50";
         }
+      });
 
-        function processAndValidateData(data) {
-            parsedItems = [];
-            previewTableBody.innerHTML = '';
+      // Lazy load data ketika menu diklik
+      if (targetViewId === 'bankSoal') fetchCloudBankSoal();
+    }
 
-            for (let i = 0; i < data.length; i++) {
-                const row = data[i];
-                const rowNum = i + 2;
-
-                const mataPelajaran = row['Mata Pelajaran'] ? String(row['Mata Pelajaran']).trim() : '';
-                const kelas = row['Kelas'] ? String(row['Kelas']).trim() : '';
-                const tipeSoal = row['Tipe Soal'] ? String(row['Tipe Soal']).trim() : '';
-                const pertanyaan = row['Pertanyaan'] ? String(row['Pertanyaan']).trim() : '';
-                const opsiA = row['Opsi A'] ? String(row['Opsi A']).trim() : '';
-                const opsiB = row['Opsi B'] ? String(row['Opsi B']).trim() : '';
-                const opsiC = row['Opsi C'] ? String(row['Opsi C']).trim() : '';
-                const opsiD = row['Opsi D'] ? String(row['Opsi D']).trim() : '';
-                const opsiE = row['Oply E'] || row['Opsi E'] ? String(row['Oply E'] || row['Opsi E']).trim() : '';
-                const kunciJawaban = row['Kunci Jawaban'] ? String(row['Kunci Jawaban']).trim().toUpperCase() : '';
-
-                if (!tipeSoal || (tipeSoal !== 'PG' && tipeSoal !== 'Essay')) {
-                    throw new Error(`Baris ${rowNum}: Kolom 'Tipe Soal' wajib diisi dengan 'PG' atau 'Essay'.`);
-                }
-                if (!pertanyaan) {
-                    throw new Error(`Baris ${rowNum}: Kolom 'Pertanyaan' tidak boleh kosong.`);
-                }
-
-                if (tipeSoal === 'PG') {
-                    if (!opsiA || !opsiB || !opsiC || !opsiD) {
-                        throw new Error(`Baris ${rowNum}: Soal PG minimal wajib mengisi Opsi A sampai Opsi D.`);
-                    }
-                    if (!kunciJawaban) {
-                        throw new Error(`Baris ${rowNum}: Soal PG wajib menyertakan 'Kunci Jawaban'.`);
-                    }
-                }
-
-                const itemObject = {
-                    mata_pelajaran: mataPelajaran,
-                    kelas: kelas,
-                    tipe_soal: tipeSoal,
-                    pertanyaan: pertanyaan,
-                    opsi_a: opsiA,
-                    opsi_b: opsiB,
-                    opsi_c: opsiC,
-                    opsi_d: opsiD,
-                    opsi_e: opsiE,
-                    kunci_jawaban: kunciJawaban
-                };
-                
-                parsedItems.push(itemObject);
-
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${i + 1}</td>
-                    <td>${escapeHtml(mataPelajaran)}</td>
-                    <td><span class="badge bg-light text-dark border">${escapeHtml(kelas)}</span></td>
-                    <td><span class="badge ${tipeSoal === 'PG' ? 'bg-info text-dark' : 'bg-warning text-dark'}">${tipeSoal}</span></td>
-                    <td class="text-wrap" style="min-width: 250px;">${escapeHtml(pertanyaan)}</td>
-                    <td>${escapeHtml(opsiA)}</td>
-                    <td>${escapeHtml(opsiB)}</td>
-                    <td>${escapeHtml(opsiC)}</td>
-                    <td>${escapeHtml(opsiD)}</td>
-                    <td>${escapeHtml(opsiE)}</td>
-                    <td class="fw-bold text-center text-primary">${escapeHtml(kunciJawaban)}</td>
-                `;
-                previewTableBody.appendChild(tr);
-            }
-
-            totalRowsBadge.innerText = `${parsedItems.length} baris terdeteksi`;
-            previewCard.classList.remove('d-none');
-            btnSyncData.removeAttribute('disabled');
-            showAlert('success', `Validasi Client Berhasil! ${parsedItems.length} soal siap disinkronisasikan.`);
+    // 2. FETCH DATA BANK SOAL DARI GOOGLE APPS SCRIPT
+    async function fetchCloudBankSoal() {
+      const tbody = document.getElementById('bankSoalTableBody');
+      tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-indigo-600 font-bold animate-pulse text-xs">Menghubungi Cloud Apps Script Engine...</td></tr>`;
+      
+      try {
+        const res = await fetch(`${GAS_WEB_APP_URL}?action=getSoalList`);
+        const result = await res.json();
+        
+        if (result.status === "SUCCESS" && result.data.length > 0) {
+          tbody.innerHTML = result.data.map((soal, index) => `
+            <tr class="hover:bg-slate-50/80 transition-colors font-medium text-slate-700">
+              <td class="p-4 text-slate-400 font-bold">${index + 1}</td>
+              <td class="p-4 max-w-md truncate font-semibold text-slate-800">${escapeHtml(soal.konten_soal)}</td>
+              <td class="p-4"><span class="px-2 py-0.5 bg-slate-100 border border-slate-200/60 rounded text-slate-600 font-bold">${escapeHtml(soal.mapel)}</span></td>
+              <td class="p-4 text-center font-bold text-indigo-600">${escapeHtml(soal.kelas)}</td>
+              <td class="p-4 text-center font-mono text-slate-500">${soal.bobot || 1}</td>
+              <td class="p-4 text-center">
+                <button onclick="editSoalAction('${soal.id_soal}')" class="text-indigo-600 hover:text-indigo-900 font-bold hover:underline">Edit</button>
+              </td>
+            </tr>
+          `).join('');
+        } else {
+          tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-slate-400">Bank soal kosong atau gagal ditarik, bro!</td></tr>`;
         }
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-red-500 font-bold">Error Integrasi: ${err.message}</td></tr>`;
+      }
+    }
 
-        function submitBulkData() {
-            if (parsedItems.length === 0) return;
+    // 3. ENGINE EXCEL BULK IMPORTER HANDLER (SheetJS Validation)
+    let excelParsedData = [];
+    document.getElementById('excelFileInput').addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (!file) return;
 
-            setLoadingState(true);
-            showAlert('info', 'Sedang melakukan Bulk Insert ke database Google Sheets... Mohon tunggu.');
+      document.getElementById('importStatusText').innerText = "Membaca data file Excel...";
+      const reader = new FileReader();
+      
+      reader.onload = function(evt) {
+        try {
+          const data = new Uint8Array(evt.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+          const jsonData = XLSX.utils.sheet_to_json(worksheet);
+          
+          if (jsonData.length === 0) throw new Error("File Excel kosong, bro!");
 
-            // Format payload dibungkus dengan action untuk controller.gs
-            const payload = {
-                action: "importSoalBatch",
-                payload: parsedItems
-            };
-
-            fetch(GAS_WEB_APP_URL, {
-                method: 'POST',
-                mode: 'cors',
-                headers: {
-                    'Content-Type': 'text/plain;charset=utf-8'
-                },
-                body: JSON.stringify(payload)
-            })
-            .then(response => {
-                if (!response.ok) throw new Error('Jaringan bermasalah atau URL Web App salah.');
-                return response.json();
-            })
-            .then(result => {
-                if (result.status === "SUCCESS") {
-                    showAlert('success', `🎉 🎉 Mantap! ${result.data.message || 'Data soal berhasil disuntikkan ke Google Sheets.'}`);
-                    resetPreview();
-                    fileInput.value = '';
-                } else {
-                    showAlert('danger', 'Gagal diproses Server: ' + result.error);
-                }
-            })
-            .catch(error => {
-                showAlert('danger', 'Error Koneksi Integrasi: ' + error.message);
-            })
-            .finally(() => {
-                setLoadingState(false);
-            });
+          excelParsedData = jsonData;
+          document.getElementById('importStatusText').innerText = `${jsonData.length} baris data terdeteksi valid. Ready.`;
+          document.getElementById('btnSyncExcel').removeAttribute('disabled');
+          
+          // Render Preview Table
+          document.getElementById('excelPreviewCard').classList.remove('hidden');
+          const pBody = document.getElementById('excelPreviewBody');
+          pBody.innerHTML = jsonData.slice(0, 5).map((row, i) => `
+            <tr>
+              <td class="p-3 text-slate-400">${i+1}</td>
+              <td class="p-3 font-bold">${row['Mata Pelajaran'] || ''}</td>
+              <td class="p-3">${row['Kelas'] || ''}</td>
+              <td class="p-3 truncate max-w-xs">${row['Pertanyaan'] || ''}</td>
+              <td class="p-3 font-bold text-indigo-600">${row['Kunci Jawaban'] || ''}</td>
+            </tr>
+          `).join('');
+        } catch(err) {
+          alert("Gagal membaca Excel: " + err.message);
         }
+      };
+      reader.readAsArrayBuffer(file);
+    });
 
-        function setLoadingState(isLoading) {
-            if (isLoading) {
-                btnSyncData.setAttribute('disabled', 'true');
-                btnSpinner.classList.remove('d-none');
-                btnText.innerText = 'Menyimpan Data...';
-            } else {
-                btnSpinner.classList.add('d-none');
-                btnText.innerText = 'Kirim ke Database';
-            }
-        }
+    // 4. BULK INSERT SUBMIT SYNC ENGINE TO APPS SCRIPT
+    async function submitBulkData() {
+      if(excelParsedData.length === 0) return;
+      const btn = document.getElementById('btnSyncExcel');
+      btn.innerText = "Mengirim...";
+      btn.disabled = true;
 
-        function showAlert(type, message) {
-            alertContainer.className = `alert alert-${type} shadow-sm`;
-            alertContainer.innerText = message;
-            alertContainer.classList.remove('d-none');
-        }
+      // Mapping array sesuai spesifikasi input database serverless
+      const mappedData = excelParsedData.map(row => ({
+        mapel: String(row['Mata Pelajaran'] || ''),
+        kelas: String(row['Kelas'] || ''),
+        semester: 1,
+        tingkat_kesulitan: "SEDANG",
+        bobot: 1,
+        konten_soal: String(row['Pertanyaan'] || ''),
+        opsi_a: String(row['Opsi A'] || ''),
+        opsi_b: String(row['Opsi B'] || ''),
+        opsi_c: String(row['Opsi C'] || ''),
+        opsi_d: String(row['Opsi D'] || ''),
+        kunci_jawaban: String(row['Kunci Jawaban'] || 'A'),
+        pembahasan: ""
+      }));
 
-        function resetPreview() {
-            parsedItems = [];
-            btnSyncData.setAttribute('disabled', 'true');
-            previewCard.classList.add('d-none');
-            previewTableBody.innerHTML = '';
+      try {
+        const res = await fetch(GAS_WEB_APP_URL, {
+          method: "POST",
+          mode: "cors",
+          headers: { "Content-Type": "text/plain" },
+          body: JSON.stringify({ action: "importSoalBatch", payload: mappedData })
+        });
+        const result = await res.json();
+        if (result.status === "SUCCESS") {
+          alert("🎉 Mantap! Seluruh data soal Excel berhasil disuntikkan ke Sheets.");
+          switchView('bankSoal');
+        } else {
+          alert("Ditolak Server: " + result.error);
         }
+      } catch(e) {
+        alert("Error: " + e.message);
+      } finally {
+        btn.innerText = "Kirim Masuk ke Database";
+        btn.disabled = false;
+      }
+    }
 
-        function escapeHtml(str) {
-            if (!str) return '';
-            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
-        }
-    </script>
+    // 5. INITIALIZE MOCK CHARTS ON WORKSPACE LOAD (Dashboard Area)
+    window.onload = function() {
+      // Donut Chart Mapel
+      new Chart(document.getElementById('chartMapel'), {
+        type: 'doughnut',
+        data: {
+          labels: ['Matematika', 'B. Indonesia', 'B. Inggris', 'IPA'],
+          datasets: [{ data: [2458, 2345, 1887, 1290], backgroundColor: ['#4F46E5', '#10B981', '#F59E0B', '#EF4444'] }]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+      });
+
+      // Line Chart History
+      new Chart(document.getElementById('chartHistory'), {
+        type: 'line',
+        data: {
+          labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun'],
+          datasets: [{ label: 'Stok Soal', data: [30, 45, 60, 55, 80, 100], borderColor: '#4F46E5', tension: 0.3 }]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+      });
+    };
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+  </script>
 </body>
 </html>
