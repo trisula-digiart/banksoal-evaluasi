@@ -2,7 +2,7 @@
  * ==========================================================
  * FRONTEND SERVICE: auth-service.js
  * Peran     : Hashing password & Multi-Role Session Manager
- * Status    : PATCHED FULL - Version 4.0 Production Ready
+ * Status    : CLEAN PATCH - No More Invisible Routes
  * ==========================================================
  */
 
@@ -76,9 +76,9 @@ const AUTH_SERVICE = {
     if (allowedRoles.length > 0 && !allowedRoles.includes(session.role)) {
       alert(`Akses Ditolak! Akun Anda (${session.role}) tidak memiliki hak akses ke halaman ini.`);
       
-      // Smart Router Direction
+      // Smart Router Direction - Hapus seluruh referensi siswa-exam-list.html
       if (session.role === 'SISWA') {
-        window.location.href = "siswa-exam.html";
+        window.location.href = "siswa-exam.html"; // Dialihkan langsung ke halaman exam existing
       } else {
         window.location.href = "index.html";
       }
