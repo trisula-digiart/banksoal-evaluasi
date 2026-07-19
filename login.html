@@ -216,51 +216,52 @@
       }
     }
 
-    // ARSITEKTUR v16.5: Universal Digit Stripper Core Engine
+    // FIX ABSOLUT v16.6: Metode Multi-Layer Raw Matching (Anti Tebak Tipe Data)
     function filterMapelDropdown() {
       const kelasSelect = document.getElementById('siswaKelas');
-      const kelasTerpilihRaw = kelasSelect.value ? String(kelasSelect.value).trim() : "";
+      const kelasTerpilih = kelasSelect.value ? String(kelasSelect.value).trim() : "";
       const mapelSelect = document.getElementById('siswaMapel');
       const btnSubmit = document.getElementById('btnSubmitSiswa');
-
       const teksOpsiTerpilih = kelasSelect.options[kelasSelect.selectedIndex].text;
 
       mapelSelect.innerHTML = '<option value="">-- Pilih Mapel Ujian --</option>';
       mapelSelect.disabled = true;
       btnSubmit.disabled = true;
 
-      if (!kelasTerpilihRaw || kelasTerpilihRaw === "") return;
-      if (!masterPaketAktif) return;
-
-      const matchTerpilih = kelasTerpilihRaw.match(/\d+/);
-      const angkaKelasTerpilih = matchTerpilih ? matchTerpilih[0] : "";
+      if (!kelasTerpilih || !masterPaketAktif) return;
 
       let foundAny = false;
 
       Object.keys(masterPaketAktif).forEach(idPaket => {
         const paket = masterPaketAktif[idPaket];
         if (paket) {
-          let dbKelasRaw = "";
+          // Ambil string mentah dari berbagai kemungkinan properti kelas di database
+          let rawDbKelas = "";
           if (paket.konfigurasi && paket.konfigurasi.kelas) {
-            dbKelasRaw = String(paket.konfigurasi.kelas).trim();
+            rawDbKelas = String(paket.konfigurasi.kelas).trim();
           } else if (paket.kelas) {
-            dbKelasRaw = String(paket.kelas).trim();
+            rawDbKelas = String(paket.kelas).trim();
           }
 
-          let dbKelasNormal = dbKelasRaw.toUpperCase();
-          if (dbKelasNormal.includes("III")) dbKelasNormal = dbKelasNormal.replace("III", "3");
-          else if (dbKelasNormal.includes("II")) dbKelasNormal = dbKelasNormal.replace("II", "2");
-          else if (dbKelasNormal.includes("IV")) dbKelasNormal = dbKelasNormal.replace("IV", "4");
-          else if (dbKelasNormal.includes("VI")) dbKelasNormal = dbKelasNormal.replace("VI", "6");
-          else if (dbKelasNormal.includes("V")) dbKelasNormal = dbKelasNormal.replace("V", "5");
-          else if (dbKelasNormal.includes("I")) dbKelasNormal = dbKelasNormal.replace("I", "1");
+          // Normalisasi konversi teks romawi umum ke angka digital sebagai cadangan
+          let rawDbKelasUpper = rawDbKelas.toUpperCase();
+          let romawiToAngka = rawDbKelasUpper;
+          if (romawiToAngka.includes("III")) romawiToAngka = romawiToAngka.replace("III", "3");
+          else if (romawiToAngka.includes("II")) romawiToAngka = romawiToAngka.replace("II", "2");
+          else if (romawiToAngka.includes("IV")) romawiToAngka = romawiToAngka.replace("IV", "4");
+          else if (romawiToAngka.includes("VI")) romawiToAngka = romawiToAngka.replace("VI", "6");
+          else if (romawiToAngka.includes("V")) romawiToAngka = romawiToAngka.replace("V", "5");
+          else if (romawiToAngka.includes("I")) romawiToAngka = romawiToAngka.replace("I", "1");
 
-          const matchDb = dbKelasNormal.match(/\d+/);
-          const angkaKelasDb = matchDb ? matchDb[0] : "";
+          console.log(`[DEBUG] ID: ${idPaket} | Asli DB: "${rawDbKelas}" | Cocokkan Target Siswa: "${kelasTerpilih}"`);
 
-          console.log(`Verifikasi Logik -> ID Paket: ${idPaket}, DB Angka: "${angkaKelasDb}", Input Siswa: "${angkaKelasTerpilih}"`);
-
-          if (angkaKelasDb !== "" && angkaKelasDb === angkaKelasTerpilih) {
+          // VALIDASI MULTI-LAYER: Cek kecocokan mentah, kecocokan label teks, atau kecocokan konversi angka romawi
+          if (
+            rawDbKelas === kelasTerpilih || 
+            rawDbKelasUpper.includes(kelasTerpilih) || 
+            rawDbKelasUpper.includes(teksOpsiTerpilih.toUpperCase()) ||
+            romawiToAngka.includes(kelasTerpilih)
+          ) {
             let namaMapelMurni = "";
             let namaPaketMurni = "";
 
