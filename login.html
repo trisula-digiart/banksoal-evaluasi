@@ -219,11 +219,15 @@
       }
     }
 
+    // RE-ENGINEERING: Fungsi filter pintar anti-mismatch data type
     function filterMapelDropdown() {
       const kelasSelect = document.getElementById('siswaKelas');
-      const kelasTerpilih = kelasSelect.value ? kelasSelect.value.trim() : "";
+      const kelasTerpilih = kelasSelect.value ? String(kelasSelect.value).trim() : "";
       const mapelSelect = document.getElementById('siswaMapel');
       const btnSubmit = document.getElementById('btnSubmitSiswa');
+
+      // Ambil label asli teks opsi dropdown untuk kebutuhan pesan alert yang bersih
+      const teksOpsiTerpilih = kelasSelect.options[kelasSelect.selectedIndex].text;
 
       mapelSelect.innerHTML = '<option value="">-- Pilih Mapel Ujian --</option>';
       mapelSelect.disabled = true;
@@ -237,18 +241,17 @@
       Object.keys(masterPaketAktif).forEach(idPaket => {
         const paket = masterPaketAktif[idPaket];
         if (paket) {
-          // Ambil kelas murni langsung dari konfigurasi objek database
+          // Normalisasi ekstraksi string data kelas database
           let dbKelas = "";
           if (paket.konfigurasi && paket.konfigurasi.kelas) {
-            dbKelas = String(paket.konfigurasi.kelas).trim();
+            dbKelas = String(paket.konfigurasi.kelas).toUpperCase().trim();
           } else if (paket.kelas) {
-            dbKelas = String(paket.kelas).trim();
+            dbKelas = String(paket.kelas).toUpperCase().trim();
           }
 
-          // Bersihkan string perbandingan (ambil angka saja dari database untuk dicocokkan dengan value dropdown "1"-"6")
-          dbKelas = dbKelas.replace(/[^0-9]/g, "");
-
-          if (dbKelas === kelasTerpilih) {
+          // STRATEGI SUBSTRING: Cek apakah nilai dropdown ("1"-"6") terkandung di dalam teks database
+          // Contoh: "KELAS 3".includes("3") -> TRUE atau "3".includes("3") -> TRUE
+          if (dbKelas.includes(kelasTerpilih)) {
             let namaMapelMurni = "";
             let namaPaketMurni = "";
 
@@ -274,7 +277,8 @@
         mapelSelect.disabled = false;
         btnSubmit.disabled = false;
       } else {
-        alert("Tidak ada paket ujian aktif untuk Kelas " + kelasSelect.options[kelasSelect.selectedIndex].text + " saat ini.");
+        // Pembersihan output teks: Menjamin nama instansi kelas bersih dari kata ganda
+        alert("Tidak ada paket ujian aktif untuk " + teksOpsiTerpilih + " saat ini.");
       }
     }
 
