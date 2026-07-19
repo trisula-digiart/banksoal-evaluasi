@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Buat Paket Ujian | CBT-SAAS-GAS-GH</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-100 font-sans flex min-h-screen">
+
+  <main class="flex-1 p-8 max-w-5xl mx-auto">
+    <div class="flex items-center gap-3 mb-6">
+      <a href="dashboard.html" class="text-slate-400 hover:text-slate-600 text-lg">⬅️</a>
+      <h1 class="text-2xl font-bold text-slate-800">Buat Paket Ujian Baru</h1>
+    </div>
+
+    <form id="paketForm" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- KIRI: Identitas & Waktu -->
+      <div class="lg:col-span-2 space-y-5">
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 space-y-4">
+          <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider border-b border-slate-50 pb-2">Identitas Ujian</h3>
+          <div>
+            <label class="block mb-2 text-sm font-medium text-slate-700">Nama Paket / Ujian</label>
+            <input type="text" id="nama_paket" required placeholder="Contoh: Ujian Harian Aljabar Bab 2" class="w-full px-4 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block mb-2 text-sm font-medium text-slate-700">Mata Pelajaran</label>
+              <input type="text" id="mapel" required placeholder="Matematika" class="w-full px-4 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+            <div>
+              <label class="block mb-2 text-sm font-medium text-slate-700">Target Kelas</label>
+              <input type="text" id="kelas" required placeholder="X-IPA" class="w-full px-4 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 space-y-4">
+          <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider border-b border-slate-50 pb-2">Durasi & Jadwal</h3>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block mb-2 text-sm font-medium text-slate-700">Durasi (Menit)</label>
+              <input type="number" id="durasi" required min="10" value="90" class="w-full px-4 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+            <div>
+              <label class="block mb-2 text-sm font-medium text-slate-700">Jumlah Soal</label>
+              <input type="number" id="jumlah_soal" required min="1" value="20" class="w-full px-4 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block mb-2 text-sm font-medium text-slate-700">Waktu Mulai Akses</label>
+              <input type="datetime-local" id="waktu_mulai" required class="w-full px-4 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+            <div>
+              <label class="block mb-2 text-sm font-medium text-slate-700">Waktu Selesai Akses</label>
+              <input type="datetime-local" id="waktu_selesai" required class="w-full px-4 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- KANAN: Fitur Acak & Publish Status -->
+      <div class="space-y-5">
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 space-y-4">
+          <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider border-b border-slate-50 pb-2">Pengaturan Engine</h3>
+          
+          <div class="flex items-center justify-between">
+            <div>
+              <label class="text-sm font-medium text-slate-700 block">Acak Nomor Soal</label>
+              <span class="text-xs text-slate-400">Urutan soal siswa berbeda-beda</span>
+            </div>
+            <input type="checkbox" id="acak_soal" checked class="w-4 h-4 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500">
+          </div>
+
+          <div class="flex items-center justify-between">
+            <div>
+              <label class="text-sm font-medium text-slate-700 block">Acak Pilihan Opsi</label>
+              <span class="text-xs text-slate-400">Pilihan A, B, C, D akan diacak</span>
+            </div>
+            <input type="checkbox" id="acak_opsi" checked class="w-4 h-4 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500">
+          </div>
+
+          <div class="flex items-center justify-between">
+            <div>
+              <label class="text-sm font-medium text-slate-700 block">Tampilkan Nilai Instan</label>
+              <span class="text-xs text-slate-400">Siswa langsung lihat nilai saat selesai</span>
+            </div>
+            <input type="checkbox" id="tampilkan_nilai" checked class="w-4 h-4 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500">
+          </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 space-y-4">
+          <label class="block text-sm font-medium text-slate-700">Status Publikasi</label>
+          <select id="status" class="w-full px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium outline-none focus:ring-2 focus:ring-indigo-500">
+            <option value="OPEN" class="text-emerald-600 font-bold">🟢 OPEN (Rilis ke Firebase Live)</option>
+            <option value="DRAFT" class="text-slate-500">⚪ DRAFT (Simpan di Sheets Saja)</option>
+          </select>
+
+          <button type="submit" id="btnSimpanPaket"
+            class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-xl transition-colors shadow-lg shadow-indigo-100 text-center block">
+            Simpan & Jalankan Ujian
+          </button>
+        </div>
+      </div>
+    </form>
+  </main>
+
+  <script src="auth-service.js"></script>
+  <script>
+    AUTH_SERVICE.checkSession(['ADMIN', 'GURU']);
+
+    document.getElementById('paketForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('btnSimpanPaket');
+      btn.disabled = true;
+      btn.innerText = "Memproses Sinkronisasi Data...";
+
+      const payload = {
+        action: "createPaketUjian",
+        payload: {
+          nama_paket: document.getElementById('nama_paket').value.trim(),
+          mapel: document.getElementById('mapel').value.trim(),
+          kelas: document.getElementById('kelas').value.trim(),
+          durasi: parseInt(document.getElementById('durasi').value),
+          jumlah_soal: parseInt(document.getElementById('jumlah_soal').value),
+          waktu_mulai: document.getElementById('waktu_mulai').value,
+          waktu_selesai: document.getElementById('waktu_selesai').value,
+          acak_soal: document.getElementById('acak_soal').checked,
+          acak_opsi: document.getElementById('acak_opsi').checked,
+          tampilkan_nilai: document.getElementById('tampilkan_nilai').checked,
+          status: document.getElementById('status').value
+        }
+      };
+
+      try {
+        const res = await fetch(AUTH_SERVICE.GAS_API_URL, {
+          method: "POST",
+          mode: "cors",
+          headers: { "Content-Type": "text/plain" },
+          body: JSON.stringify(payload)
+        });
+        const result = await res.json();
+
+        if (result.status === "SUCCESS") {
+          alert(result.data.message);
+          window.location.href = "dashboard.html";
+        } else {
+          alert("Gagal Sinkronisasi: " + result.error);
+          btn.disabled = false;
+          btn.innerText = "Simpan & Jalankan Ujian";
+        }
+      } catch(err) {
+        alert("Terjadi gangguan koneksi pada Dual-Write Engine!");
+        btn.disabled = false;
+        btn.innerText = "Simpan & Jalankan Ujian";
+      }
+    });
+  </script>
+</body>
+</html>
