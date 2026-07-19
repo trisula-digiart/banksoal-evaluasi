@@ -28,7 +28,7 @@
     .select-none { -webkit-user-select: none; user-select: none; }
   </style>
 </head>
-<body class="bg-slate-50 text-slate-800 font-sans antialiased flex flex-col min-h-screen select-none">
+<body class="bg-white text-slate-800 font-sans antialiased flex flex-col min-h-screen select-none">
 
   <!-- ==========================================
        WORKSPACE UTAMA: FULLSCREEN LAYOUT 
@@ -38,11 +38,10 @@
     <!-- BANNER ILUSTRASI (DI DESKTOP ADA DI KIRI FULL, DI HP ADA DI ATAS FULL KAYA GAMBAR 5) -->
     <div class="col-span-1 lg:col-span-7 w-full h-[320px] sm:h-[400px] lg:h-full bg-[#e8f1ff] lg:bg-gradient-to-b lg:from-blue-500 lg:to-indigo-600 bg-contain bg-no-repeat bg-center relative shrink-0" 
          style="background-image: url('bg-login.jpg');">
-      <!-- Proteksi layer visual dasar -->
       <div class="absolute inset-0 bg-slate-950/5 lg:hidden"></div>
     </div>
 
-    <!-- CARD FORM LOGIN UTAMA (PAS DAN PRESISI DI SISI KANAN) -->
+    <!-- CARD FORM LOGIN UTAMA -->
     <div class="col-span-1 lg:col-span-5 w-full h-full p-6 sm:p-10 md:p-12 flex items-center justify-center bg-white border-t lg:border-t-0 lg:border-l border-slate-100">
       <div class="w-full max-w-sm mx-auto space-y-5">
         
@@ -67,7 +66,7 @@
           <span class="font-bold">Waduh!</span> <span id="errorText"></span>
         </div>
 
-        <!-- FORM 1: LOGIN SISWA (Font Ukuran Kecil Pas & Proporsional di Layar HP) -->
+        <!-- FORM 1: LOGIN SISWA -->
         <form id="studentForm" class="space-y-3.5" autocomplete="off">
           <div>
             <label class="block mb-1 text-[10px] md:text-xs font-bold text-slate-700 uppercase tracking-wider">Nama Siswa</label>
@@ -127,7 +126,7 @@
           </div>
         </form>
 
-        <!-- Banner Panduan Sesuai Skala Ukuran Huruf Mobile -->
+        <!-- Banner Panduan Khas Mockup -->
         <div class="p-3 bg-amber-50 rounded-xl border border-amber-100 flex items-start gap-2 text-[10px] md:text-xs text-amber-800/95 shadow-sm">
           <span class="text-xs mt-0.5">💡</span>
           <div>
@@ -238,8 +237,16 @@
       Object.keys(masterPaketAktif).forEach(idPaket => {
         const paket = masterPaketAktif[idPaket];
         if (paket) {
-          let dbKelas = paket.kelas || (paket.konfigurasi ? paket.konfigurasi.kelas : "");
-          dbKelas = String(dbKelas).replace(/[^0-9]/g, "").trim();
+          // Ambil kelas murni langsung dari konfigurasi objek database
+          let dbKelas = "";
+          if (paket.konfigurasi && paket.konfigurasi.kelas) {
+            dbKelas = String(paket.konfigurasi.kelas).trim();
+          } else if (paket.kelas) {
+            dbKelas = String(paket.kelas).trim();
+          }
+
+          // Bersihkan string perbandingan (ambil angka saja dari database untuk dicocokkan dengan value dropdown "1"-"6")
+          dbKelas = dbKelas.replace(/[^0-9]/g, "");
 
           if (dbKelas === kelasTerpilih) {
             let namaMapelMurni = "";
@@ -255,7 +262,7 @@
 
             const mapelLabel = namaMapelMurni ? String(namaMapelMurni).toUpperCase() : "UJIAN AKTIF";
             const paketLabel = namaPaketMurni ? ` - ${namaPaketMurni}` : "";
-            const textOpsiTampilan = `${mapelLabel}${paketLabel} (${idPaket})`;
+            const textOpsiTampilan = `${mapelLabel}${paketLabel}`;
 
             mapelSelect.innerHTML += `<option value="${idPaket}">${textOpsiTampilan}</option>`;
             foundAny = true;
@@ -267,7 +274,7 @@
         mapelSelect.disabled = false;
         btnSubmit.disabled = false;
       } else {
-        alert("Tidak ada paket ujian aktif untuk Kelas " + kelasTerpilih + " saat ini.");
+        alert("Tidak ada paket ujian aktif untuk Kelas " + kelasSelect.options[kelasSelect.selectedIndex].text + " saat ini.");
       }
     }
 
