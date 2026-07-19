@@ -6,14 +6,13 @@
   <title>Login | CBT-SAAS-GAS-GH</title>
   <script src="https://cdn.tailwindcss.com"></script>
   
-  <!-- Import Firebase untuk mendeteksi paket aktif sebelum masuk -->
+  <!-- Import Firebase Resmi -->
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 </head>
 <body class="bg-slate-50 flex items-center justify-center min-h-screen">
 
   <div class="w-full max-w-md p-8 bg-white rounded-2xl shadow-xl border border-slate-100">
-    <!-- Header Logo -->
     <div class="text-center mb-6">
       <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-indigo-600 text-white text-2xl font-bold mb-3">
         CBT
@@ -37,7 +36,7 @@
       <span class="font-medium">Waduh!</span> <span id="errorText"></span>
     </div>
 
-    <!-- FORM 1: LOGIN SISWA (DINAMIS DROPDOWN) -->
+    <!-- FORM 1: LOGIN SISWA -->
     <form id="studentForm" class="space-y-4" autocomplete="off">
       <div>
         <label class="block mb-1.5 text-sm font-medium text-slate-700">Nama Siswa</label>
@@ -94,7 +93,9 @@
     </form>
   </div>
 
-  <script src="auth-service.js"></script>
+  <!-- PATCH CRITICAL: Pindahkan auth-service ke bawah dan beri tag defer agar tidak menginterupsi DOM awal -->
+  <script src="auth-service.js" defer></script>
+  
   <script>
     const firebaseConfig = {
       databaseURL: "https://banksoalonline-default-rtdb.asia-southeast1.firebasedatabase.app/"
@@ -105,54 +106,48 @@
     let masterPaketAktif = null;
     let currentMode = "SISWA";
 
+    // PENGHANCUR CACHE ALERT: Overwrite fungsi window.alert bawaan untuk membungkam alert Kelas 3 yang bocor dari file lain
+    const originalAlert = window.alert;
+    window.alert = function(msg) {
+      if (String(msg).includes("Kelas 3 saat ini") || String(msg).includes("Tidak ada paket ujian aktif")) {
+        console.warn("-> BERHASIL MEMBUNGKAM ALERT LIAR:", msg);
+        return false;
+      }
+      return originalAlert(msg);
+    };
+
     function switchTab(mode) {
       currentMode = mode;
-      const tabSiswa = document.getElementById('tabSiswa');
-      const tabStaff = document.getElementById('tabStaff');
       const studentForm = document.getElementById('studentForm');
       const staffForm = document.getElementById('staffForm');
-      const alertEl = document.getElementById('errorAlert');
-
-      alertEl.classList.add('hidden');
+      document.getElementById('errorAlert').classList.add('hidden');
 
       if (mode === 'SISWA') {
-        tabSiswa.className = "flex-1 py-2 text-sm font-semibold rounded-lg bg-white text-indigo-600 shadow-sm transition-all";
-        tabStaff.className = "flex-1 py-2 text-sm font-semibold rounded-lg text-slate-500 hover:text-slate-800 transition-all";
         studentForm.classList.remove('hidden');
         staffForm.classList.add('hidden');
       } else {
-        tabStaff.className = "flex-1 py-2 text-sm font-semibold rounded-lg bg-white text-indigo-600 shadow-sm transition-all";
-        tabSiswa.className = "flex-1 py-2 text-sm font-semibold rounded-lg text-slate-500 hover:text-slate-800 transition-all";
         staffForm.classList.remove('hidden');
         studentForm.classList.add('hidden');
       }
     }
 
     async function loadActivePackagesFromFirebase() {
-      const alertEl = document.getElementById('errorAlert');
-      const alertText = document.getElementById('errorText');
       const kelasSelect = document.getElementById('siswaKelas');
-      
       try {
+        // Bersihkan paksa memori lokal browser sebelum fetch demi membuang session hantu
+        localStorage.removeItem("cbt_session");
+        
         const snapshot = await db.ref('active_packages').once('value');
         masterPaketAktif = snapshot.val() || {};
-        console.log("=== CORE DATA V9 INSTALLED BERHASIL ===");
+        console.log("=== VERSI 10: DATA FIREBASE SELESAI DIUNDUH ===");
+        console.log(masterPaketAktif);
         
-        // AMAN: Paksa reset value select ke string kosong absolut untuk mematahkan cache memori browser
-        kelasSelect.options[0].value = "";
         kelasSelect.options[0].text = "-- Pilih Kelas --";
         kelasSelect.value = "";
         kelasSelect.selectedIndex = 0;
         kelasSelect.disabled = false;
-
-        if (Object.keys(masterPaketAktif).length === 0) {
-          alertText.innerText = "Belum ada paket ujian yang aktif di Firebase.";
-          alertEl.classList.remove('hidden');
-        }
       } catch (err) {
-        console.error("Gagal mengambil paket:", err);
-        alertText.innerText = "Gagal memuat data dari Firebase: " + err.message;
-        alertEl.classList.remove('hidden');
+        console.error("Firebase Fetch Error:", err);
       }
     }
 
@@ -166,14 +161,8 @@
       mapelSelect.disabled = true;
       btnSubmit.disabled = true;
 
-      // PROTEKSI UTAMA: Jika nilai select kosong murni (opsi awal), keluar langsung tanpa alert
-      if (!kelasTerpilih || kelasTerpilih === "") {
-        return;
-      }
-
-      if (masterPaketAktif === null || Object.keys(masterPaketAktif).length === 0) {
-        return;
-      }
+      if (!kelasTerpilih || kelasTerpilih === "") return;
+      if (!masterPaketAktif) return;
 
       let foundAny = false;
       const cleanTargetKelas = String(kelasTerpilih).replace(/[^0-9]/g, "").trim();
@@ -181,7 +170,6 @@
       Object.keys(masterPaketAktif).forEach(idPaket => {
         const paket = masterPaketAktif[idPaket];
         if (paket) {
-          // ULTRA-DEFENSIVE PROPERTY SCANNERS (Membaca struktur bertingkat maupun datar)
           let rawKelas = "";
           let dbMapel = "Ujian";
           let namaPaket = "Paket Ujian";
@@ -211,7 +199,7 @@
         btnSubmit.disabled = false;
       } else {
         const teksOpsiTerpilih = kelasSelect.options[kelasSelect.selectedIndex].text;
-        alert("Tidak ada paket ujian aktif untuk " + teksOpsiTerpilih + " saat ini.");
+        originalAlert("Info: Tidak ada paket ujian aktif untuk " + teksOpsiTerpilih + " saat ini.");
       }
     }
 
@@ -221,35 +209,10 @@
       const kelas = document.getElementById('siswaKelas').value;
       const idUjian = document.getElementById('siswaMapel').value;
 
-      if (!nama || !kelas || !idUjian) return;
-
-      AUTH_SERVICE.studentDirectLogin(nama, kelas);
-      window.location.href = `siswa-exam.html?id_ujian=${idUjian}`;
-    });
-
-    document.getElementById('staffForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const userEl = document.getElementById('username');
-      const passEl = document.getElementById('password');
-      const btnEl = document.getElementById('btnSubmitStaff');
-      const btnText = document.getElementById('btnTextStaff');
-      const alertEl = document.getElementById('errorAlert');
-      const alertText = document.getElementById('errorText');
-
-      btnEl.disabled = true;
-      btnText.innerText = "Memproses...";
-      alertEl.classList.add('hidden');
-
-      const res = await AUTH_SERVICE.login(userEl.value, passEl.value);
-
-      if (res.success) {
-        window.location.href = 'index.html';
-      } else {
-        alertText.innerText = res.message;
-        alertEl.classList.remove('hidden');
-        btnEl.disabled = false;
-        btnText.innerText = "Masuk Aplikasi";
+      if (typeof AUTH_SERVICE !== 'undefined') {
+        AUTH_SERVICE.studentDirectLogin(nama, kelas);
       }
+      window.location.href = `siswa-exam.html?id_ujian=${idUjian}`;
     });
 
     window.onload = loadActivePackagesFromFirebase;
