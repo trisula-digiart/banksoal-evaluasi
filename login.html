@@ -216,75 +216,63 @@
       }
     }
 
-    // ARSITEKTUR v33.0: PURE STABLE DIGIT STRIPPER (FIXED AND TESTED COMPLIANCE)
+    // ARSITEKTUR v35.0: STABLE SYNTAX & FULL DIRECT DIGIT STRIPPER
     function filterMapelDropdown() {
-  const kelasSelect = document.getElementById('siswaKelas');
-  const kelasTerpilihRaw = kelasSelect.value ? String(kelasSelect.value).trim() : "";
-  const mapelSelect = document.getElementById('siswaMapel');
-  const btnSubmit = document.getElementById('btnSubmitSiswa');
-  const teksOpsiTerpilih = kelasSelect.options[kelasSelect.selectedIndex].text;
+      const kelasSelect = document.getElementById('siswaKelas');
+      const kelasTerpilihRaw = kelasSelect.value ? String(kelasSelect.value).trim() : "";
+      const mapelSelect = document.getElementById('siswaMapel');
+      const btnSubmit = document.getElementById('btnSubmitSiswa');
+      const teksOpsiTerpilih = kelasSelect.options[kelasSelect.selectedIndex].text;
 
-  mapelSelect.innerHTML = '<option value="">-- Pilih Mapel Ujian --</option>';
-  mapelSelect.disabled = true;
-  btnSubmit.disabled = true;
+      mapelSelect.innerHTML = '<option value="">-- Pilih Mapel Ujian --</option>';
+      mapelSelect.disabled = true;
+      btnSubmit.disabled = true;
 
-  if (!kelasTerpilihRaw || kelasTerpilihRaw === "") return;
-  if (!masterPaketAktif) return;
+      if (!kelasTerpilihRaw || kelasTerpilihRaw === "") return;
+      if (!masterPaketAktif) return;
 
-  // Ekstrak angka murni dari value pilihan dropdown siswa
-  const matchTerpilih = kelasTerpilihRaw.match(/\d+/);
-  const angkaKelasTerpilih = matchTerpilih ? matchTerpilih[0] : "";
+      const matchTerpilih = kelasTerpilihRaw.match(/\d+/);
+      const angkaKelasTerpilih = matchTerpilih ? matchTerpilih[0] : "";
 
-  let foundAny = false;
+      let foundAny = false;
 
-  Object.keys(masterPaketAktif).forEach(idPaket => {
-    const paket = masterPaketAktif[idPaket];
-    if (paket) {
-      
-      // 1. DUAL-PATH SELECTOR: Ambil raw data dari node database Firebase
-      let dbKelasRaw = "";
-      if (paket.konfigurasi && paket.konfigurasi.kelas !== undefined) {
-        dbKelasRaw = paket.konfigurasi.kelas;
-      } else if (paket.kelas !== undefined) {
-        dbKelasRaw = paket.kelas;
-      }
+      Object.keys(masterPaketAktif).forEach(idPaket => {
+        const paket = masterPaketAktif[idPaket];
+        if (paket) {
+          let dbKelasRaw = "";
+          if (paket.konfigurasi && paket.konfigurasi.kelas !== undefined) {
+            dbKelasRaw = paket.konfigurasi.kelas;
+          } else if (paket.kelas !== undefined) {
+            dbKelasRaw = paket.kelas;
+          }
 
-      // 2. PATCH RECOVERY v34.0: STABLE DIRECT STRIPPER ENGINE
-      // Mengubah integer murni maupun string campuran langsung menjadi string angka bersih
-      const angkaKelasDb = String(dbKelasRaw).replace(/[^0-9]/g, "").trim();
+          // Direct Stripper Stabil: Ambil raw data, paksa string, bersihkan karakter selain angka
+          const angkaKelasDb = String(dbKelasRaw).replace(/[^0-9]/g, "").trim();
 
-      console.log(`[VERIFIKASI v34.0] ID Ujian: ${idPaket} | Angka DB Terdeteksi: "${angkaKelasDb}" | Input Siswa: "${angkaKelasTerpilih}"`);
+          console.log(`[VERIFIKASI v35.0] ID Ujian: ${idPaket} | Angka DB: "${angkaKelasDb}" | Input Siswa: "${angkaKelasTerpilih}"`);
 
-      // 3. VALIDASI ABSOLUT: Bandingkan kecocokan angka numerik kelas
-      if (angkaKelasDb !== "" && angkaKelasDb === angkaKelasTerpilih) {
-        let namaMapelMurni = "";
-        let namaPaketMurni = "";
+          if (angkaKelasDb !== "" && angkaKelasDb === angkaKelasTerpilih) {
+            let namaMapelMurni = "";
+            let namaPaketMurni = "";
 
-        if (paket.konfigurasi) {
-          namaMapelMurni = paket.konfigurasi.mapel || paket.konfigurasi.mata_pelajaran || "";
-          namaPaketMurni = paket.konfigurasi.nama_paket || "";
+            if (paket.konfigurasi) {
+              namaMapelMurni = paket.konfigurasi.mapel || paket.konfigurasi.mata_pelajaran || "";
+              namaPaketMurni = paket.konfigurasi.nama_paket || "";
+            }
+            
+            if (!namaMapelMurni) namaMapelMurni = paket.mapel || "";
+            if (!namaPaketMurni) namaPaketMurni = paket.nama_paket || "";
+
+            const mapelLabel = namaMapelMurni ? String(namaMapelMurni).toUpperCase() : "UJIAN AKTIF";
+            const paketLabel = namaPaketMurni ? ` - ${namaPaketMurni}` : "";
+            const textOpsiTampilan = `${mapelLabel}${paketLabel}`;
+
+            mapelSelect.innerHTML += `<option value="${idPaket}">${textOpsiTampilan}</option>`;
+            foundAny = true;
+          }
         }
-        
-        if (!namaMapelMurni) namaMapelMurni = paket.mapel || "";
-        if (!namaPaketMurni) namaPaketMurni = paket.nama_paket || "";
+      });
 
-        const mapelLabel = namaMapelMurni ? String(namaMapelMurni).toUpperCase() : "UJIAN AKTIF";
-        const paketLabel = namaPaketMurni ? ` - ${namaPaketMurni}` : "";
-        const textOpsiTampilan = `${mapelLabel}${paketLabel}`;
-
-        mapelSelect.innerHTML += `<option value="${idPaket}">${textOpsiTampilan}</option>`;
-        foundAny = true;
-      }
-    }
-  });
-
-  if (foundAny) {
-    mapelSelect.disabled = false;
-    btnSubmit.disabled = false;
-  } else {
-    alert("Tidak ada paket ujian aktif untuk " + teksOpsiTerpilih + " saat ini.");
-  }
-}
       if (foundAny) {
         mapelSelect.disabled = false;
         btnSubmit.disabled = false;
