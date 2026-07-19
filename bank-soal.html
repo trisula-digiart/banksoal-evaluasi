@@ -91,38 +91,41 @@
     }
 
     function populateFilterOptions() {
-      const mapels = [...new Set(allSoalData.map(s => s.mapel))];
-      const kelasList = [...new Set(allSoalData.map(s => s.kelas))];
+      // Amankan mapping jika field mapel/kelas kosong di Sheets
+      const mapels = [...new Set(allSoalData.map(s => (s.mapel || "").trim()).filter(Boolean))];
+      const kelasList = [...new Set(allSoalData.map(s => (s.kelas || "").trim()).filter(Boolean))];
       
       const mapelSelect = document.getElementById('filterMapel');
+      mapelSelect.innerHTML = '<option value="">Semua Mapel</option>';
       mapels.forEach(m => mapelSelect.innerHTML += `<option value="${m}">${m}</option>`);
       
       const kelasSelect = document.getElementById('filterKelas');
+      kelasSelect.innerHTML = '<option value="">Semua Kelas</option>';
       kelasList.forEach(k => kelasSelect.innerHTML += `<option value="${k}">${k}</option>`);
     }
 
     function renderTable(data) {
       const tbody = document.getElementById('soalTableBody');
-      if (data.length === 0) {
+      if (!data || data.length === 0) {
         tbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-slate-400">Tidak ada data soal ditemukan.</td></tr>`;
         return;
       }
 
       tbody.innerHTML = data.map(soal => `
         <tr class="hover:bg-slate-50/80 transition-colors">
-          <td class="p-4 font-mono text-xs font-bold text-indigo-600">${soal.id_soal}</td>
+          <td class="p-4 font-mono text-xs font-bold text-indigo-600">${soal.id_soal || "-"}</td>
           <td class="p-4">
-            <span class="block font-medium text-slate-800">${soal.mapel}</span>
-            <span class="text-xs text-slate-400">Kelas ${soal.kelas}</span>
+            <span class="block font-medium text-slate-800">${soal.mapel || "-"}</span>
+            <span class="text-xs text-slate-400">Kelas ${soal.kelas || "-"}</span>
           </td>
-          <td class="p-4 text-slate-600 truncate max-w-md">${soal.konten_soal}</td>
-          <td class="p-4 text-center"><span class="px-2 py-1 bg-emerald-50 text-emerald-700 rounded-md font-bold text-xs">${soal.kunci_jawaban}</span></td>
-          <td class="p-4 text-center font-medium">${soal.bobot}</td>
+          <td class="p-4 text-slate-600 truncate max-w-md">${soal.konten_soal || "(Teks soal kosong)"}</td>
+          <td class="p-4 text-center"><span class="px-2 py-1 bg-emerald-50 text-emerald-700 rounded-md font-bold text-xs">${soal.kunci_jawaban || "-"}</span></td>
+          <td class="p-4 text-center font-medium">${soal.bobot || "0"}</td>
         </tr>
       `).join('');
     }
 
-    // Event Listener untuk Live Filter di Frontend
+    // Event Listener untuk Live Filter dengan proteksi null-safety
     document.querySelectorAll('#searchSoal, #filterMapel, #filterKelas').forEach(el => {
       el.addEventListener('input', () => {
         const search = document.getElementById('searchSoal').value.toLowerCase();
@@ -130,9 +133,14 @@
         const kelas = document.getElementById('filterKelas').value;
 
         const filtered = allSoalData.filter(s => {
-          return (s.konten_soal.toLowerCase().includes(search) || s.id_soal.toLowerCase().includes(search)) &&
-                 (mapel === "" || s.mapel === mapel) &&
-                 (kelas === "" || s.kelas === kelas);
+          const textSoal = (s.konten_soal || "").toLowerCase();
+          const idSoal = (s.id_soal || "").toLowerCase();
+          const itemMapel = s.mapel || "";
+          const itemKelas = s.kelas || "";
+
+          return (textSoal.includes(search) || idSoal.includes(search)) &&
+                 (mapel === "" || itemMapel === mapel) &&
+                 (kelas === "" || itemKelas === kelas);
         });
         renderTable(filtered);
       });
